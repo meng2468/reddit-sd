@@ -34,7 +34,7 @@ def pull_comments(subreddits=['CryptoCurrency'], keywords=['Bitcoin', 'btc'], da
     print('Pulled', len(data), 'submissions in', time.time() - start_time, 'seconds')
     return data
 
-# Pulls all comments for the given paramaters from reddit
+# Pulls all submissions for the given paramaters from reddit
 def pull_submissions(subreddits=['CryptoCurrency'], keywords=['Bitcoin', 'btc'], days=30):
     start_time = time.time()
     start_utc = int(time.time() - days*24*60*60)

@@ -6,7 +6,7 @@ import spacy
 def get_data(file_path):
     print('(1/4) Loading data from', file_path)
     df = pd.read_csv(file_path)
-    df = df[['author','created_utc','score','subreddit','body']]
+    df = df[['id','author','created_utc','score','subreddit','body']]
     return df
 
 # Splits a single comment into multiple rows for each sentence
@@ -31,7 +31,7 @@ def convert_sentences(data, cores=4):
 def filter_keywords(data, keywords):
     print('(3/4) Keeping sentences that contain', keywords)
     contain = data['text'].apply(lambda x: len(set(x.split()) & set(keywords)) > 0)
-    return data[contain].reset_index()
+    return data[contain].reset_index(drop=True)
 
 # Locate and keep complement and propositional clauses
 def parse_clausal(data, cores=4):
@@ -47,7 +47,7 @@ def parse_clausal(data, cores=4):
             if token.dep_ in ['ccomp', 'pcomp']:
                 keep = True
         filter_l.append(keep)
-    return data[filter_l].reset_index()
+    return data[filter_l].reset_index(drop=True)
 
 # Run all pre-processing operations on file
 def get_processed_data(file_path):
