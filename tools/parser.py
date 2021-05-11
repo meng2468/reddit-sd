@@ -3,33 +3,38 @@ import time
 import pandas as pd
 import numpy as np
 
-
-# Need to re-think how we pull comments, how we identify the topic being discuss.
-# Keyword searching comments would be less useful than submission topic dependence or parent comments in a longer comment thread
-
-def pull_comments(subreddit, keyword, days):
+# Pulls all comments for the given paramaters from reddit
+def pull_comments(subreddits=['CryptoCurrency'], keywords=['Bitcoin', 'btc'], days=30):
     start_time = time.time()
     start_utc = int(time.time() - days*24*60*60)
     print('*'*40)
-    print('Pulling comments in', subreddit, 'that include', '"'+keyword+'"', 'from the past ' + str(days) +'d')    
+    print('Pulling submissions from the past ' + str(days) +'d')
+    print('Subreddits', subreddits)
+    print('Keywords', keywords)
+    keywords = '|'.join(keywords)
+    subreddits = ','.join(subreddits)
     url = 'https://api.pushshift.io/reddit/search/comment/?'
-    params = ['q='+keyword,'subreddit='+subreddit,'size=100', 'sort=asc']
+    params = ['q='+keywords,'subreddit='+subreddits,'size=100', 'sort=asc']
     data = []
 
     while True:
         endpoint = url + '&'.join(params) + '&' + 'after='+str(start_utc)
         print('Calling', endpoint)
         r = requests.get(endpoint)
-        daily_data = r.json()
-        if len(daily_data['data']) == 0:
-            print('No more data to pull, stopping at', time.strftime('%d.%m.%H:%M',time.localtime(start_utc)))
-            break
-        data += daily_data['data']
-        start_utc = daily_data['data'][-1]['created_utc']
+        try:
+            daily_data = r.json()
+            if len(daily_data['data']) == 0:
+                print('No more data to pull, stopping at', time.strftime('%d.%m.%H:%M',time.localtime(start_utc)))
+                break
+            data += daily_data['data']
+            start_utc = daily_data['data'][-1]['created_utc']
+        except:
+            print('Ran into an error, retrying')
 
     print('Pulled', len(data), 'submissions in', time.time() - start_time, 'seconds')
     return data
 
+# Pulls all comments for the given paramaters from reddit
 def pull_submissions(subreddits=['CryptoCurrency'], keywords=['Bitcoin', 'btc'], days=30):
     start_time = time.time()
     start_utc = int(time.time() - days*24*60*60)
@@ -47,12 +52,15 @@ def pull_submissions(subreddits=['CryptoCurrency'], keywords=['Bitcoin', 'btc'],
         endpoint = url + '&'.join(params) + '&' + 'after='+str(start_utc)
         print('Calling', endpoint)
         r = requests.get(endpoint)
-        daily_data = r.json()
-        if len(daily_data['data']) == 0:
-            print('No more data to pull, stopping at', time.strftime('%d.%m.%H:%M',time.localtime(start_utc)))
-            break
-        data += daily_data['data']
-        start_utc = daily_data['data'][-1]['created_utc']
+        try:
+            daily_data = r.json()
+            if len(daily_data['data']) == 0:
+                print('No more data to pull, stopping at', time.strftime('%d.%m.%H:%M',time.localtime(start_utc)))
+                break
+            data += daily_data['data']
+            start_utc = daily_data['data'][-1]['created_utc']
+        except:
+            print('Ran into an issue, retrying')
 
     print('Pulled', len(data), 'submissions in', time.time() - start_time, 'seconds')
     return data
