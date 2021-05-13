@@ -5,7 +5,7 @@ def read_data(file_path):
     df = pd.read_csv(file_path)
     return df
 
-def annotate(file_path, output_file):
+def annotate(file_path, output_file, encoding='utf-8'):
     data = pd.read_csv(file_path)
     columns = 'id, author, created_utc, score, subreddit, text, label\n'
     if os.path.isfile(output_file):
@@ -20,6 +20,9 @@ def annotate(file_path, output_file):
             print('Annotation', annotated,', Target: Ethereum')
             print('Text:', row['text'].values[0])
             annotation = input('1. (f)avor 2. (a)gainst 3. (n)either or 4. (u)unsure? 5. (q) to exit :  ')
+            if len(annotation) == 0:
+                print('Empty inpu, skipping')
+                continue
             if annotation[0] in ['f', '1']:
                 annotation = 'favor'
             elif annotation[0] in ['a','2']:
@@ -32,6 +35,9 @@ def annotate(file_path, output_file):
             elif annotation[0] in ['q', '5']:
                 print('Quitting')
                 break
+            else:
+                print("Didn't choose any option, skipping")
+                continue
             print('Chose', annotation)
             line =  str(row['id'].values[0]) + ', ' + str(row['author'].values[0])+ ', '
             line += str(row['created_utc'].values[0]) + ',' + str(row['score'].values[0]) + ','
