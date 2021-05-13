@@ -10,7 +10,7 @@ def annotate(file_path, output_file):
     columns = 'id, author, created_utc, score, subreddit, text, label\n'
     if os.path.isfile(output_file):
         columns = ''
-    with open(output_file, 'a') as file:
+    with open(output_file, 'a', encoding="utf-8") as file:
         file.write(columns)
         annotation = input('Type anything to get started   ')
         annotated = 0
@@ -41,7 +41,7 @@ def annotate(file_path, output_file):
             annotated += 1
 
 if __name__ == '__main__':
-    file_path = '../data/p_c_1620679531_180d.csv'
-    output_file = '../data/annotations.csv'
+    file_path = './data/p_c_1620679531_180d.csv'
+    output_file = './data/annotations.csv'
 
     annotate(file_path, output_file)
