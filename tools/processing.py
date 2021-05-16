@@ -141,3 +141,10 @@ def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
         return (train_iter, val_iter, test_iter), (info['label'], info['text'])
     return train_iter, val_iter, test_iter
 
+# ============= Useful  =============
+def encodeFile(input_file, output_file, input_enc="latin-1", output_enc="utf-8"):
+    with open(output_file, 'w', encoding=output_enc) as new_f:
+        with open(input_file, 'r', encoding=input_enc) as f:
+            for line in f:
+                new_f.write(line)
+    print(f"Encoded {input_file} as {output_file} from {input_enc} into {output_enc}.")
