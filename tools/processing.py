@@ -1,7 +1,13 @@
+import os
+import torch
+from torchtext.legacy import data
 import pandas as pd
 import numpy as np
 import spacy
 
+
+
+# ============= Reddit data processing =============
 # Chooses relevant fields from scraped comments
 def get_data(file_path):
     print('(1/4) Loading data from', file_path)
@@ -58,3 +64,80 @@ def get_processed_data(file_path):
     key_df = filter_keywords(sent_df,['eth', 'Ethereum', 'ETH', 'Ether','ether'])
     par_df = parse_clausal(key_df)
     return par_df
+
+
+# ============= Datasets processing  =============
+def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
+    """ Make splits from given dataset. Return train/val/test iterators. """
+    print("*"*40)
+    print(f"Making dataset splits ({dataset})")
+    available_datasets = [ "SemEval2016Task6" ]
+    assert dataset in available_datasets, "Invalid dataset, must be one of {}.".format(' | '.join(available_datasets))
+
+    # data directory
+    if os.path.isdir("./data/"):
+        data_dir = "data"
+    elif os.path.isdir("../data/"):
+        data_dir = "../data"
+    else:
+        data_dir = None
+    assert data_dir, "Please download dataset using 'datasets.sh' !"
+    
+    # informations
+    dataset_info = {
+        'SemEval2016Task6': dict(
+            dir=f"{data_dir}/SemEval2016Task6/", 
+            format="TSV",
+            encoding="latin-1",
+            train="trainingdata-all-annotations.txt", 
+            val="trialdata-all-annotations.txt", 
+            test="testdata-taskA-all-annotations.txt", 
+            text=data.Field(use_vocab=False, tokenize=tokenizer.encode, lower=False, include_lengths=False, batch_first=True,
+                    fix_length=128, pad_token=tokenizer.convert_tokens_to_ids(tokenizer.pad_token), 
+                    unk_token=tokenizer.convert_tokens_to_ids(tokenizer.unk_token)), 
+            label=data.Field(sequential=False, batch_first=True, dtype=torch.long, is_target=True),
+            fields=("Stance", "Tweet")),
+
+        'SemEval2019Task7': "TODO",
+        }
+    info = dataset_info[dataset]
+
+    # encode files
+    if "encoding" in info.keys():
+        train = os.path.join(info['dir'], info['train'])
+        val = os.path.join(info['dir'], info['val'])
+        test = os.path.join(info['dir'], info['test'])
+        new_train = os.path.join(info['dir'], "train.txt")
+        new_val = os.path.join(info['dir'], "val.txt")
+        new_test = os.path.join(info['dir'], "test.txt")
+
+        encodeFile(train, new_train, info['encoding'], "utf-8")
+        encodeFile(val, new_val, info['encoding'], "utf-8")
+        encodeFile(test, new_test, info['encoding'], "utf-8")
+
+        info['train'] = "train.txt"
+        info['val'] = "val.txt"
+        info['test'] = "test.txt"
+
+    # read data & build vocab
+    train_data, val_data, test_data = data.TabularDataset.splits(
+        path=info['dir'], 
+        train=info['train'], validation=info['val'], test=info['test'], 
+        format=info['format'], 
+        fields={info['fields'][0]: ('label', info['label']), info['fields'][1]: ('text', info['text'])}
+        )
+    info['label'].build_vocab(train_data)
+
+    # make splits
+    train_iter, val_iter, test_iter = data.BucketIterator.splits(
+        (train_data, val_data, test_data), 
+        batch_size=kwargs.get('bs', 32),
+        sort_key=lambda x: len(x.text),
+        sort_within_batch=True,
+        shuffle=True,
+        device=kwargs.get('device', torch.device('cpu'))
+    )
+    if return_fields:
+        return (train_iter, val_iter, test_iter), (info['label'], info['text'])
+    return train_iter, val_iter, test_iter
+
