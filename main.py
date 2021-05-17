@@ -6,12 +6,22 @@ import transformers
 from transformers import AutoTokenizer, AutoModel
 import numpy as np
 import pandas as pd
+import argparse
 
 # custom imports
 from stance.trainer import train, evaluate
 from stance.models import StDClassifier
 from tools.processing import makeSplits
 
+def _makeParser():
+    available_models = [ "bert-base-uncased" ]
+    available_datasets = [ "SemEval2016Task6" ]
+
+    parser = argparse.ArgumentParser(description="Stance Detection benchmark")
+    parser.add_argument('model', type=str, metavar='BASE_MODEL', choices=available_models, 
+        help="pretrained base model, must be one of {}".format(' | '.join(available_models)))
+    parser.add_argument('dataset', type=str, metavar='DATASET', choices=available_datasets, 
+        help="dataset name, must be one of {}".format(' | '.join(available_datasets)))
 
 def bert():
     # config
