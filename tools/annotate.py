@@ -21,7 +21,7 @@ def annotate(file_path, output_file, encoding='utf-8'):
             print('Text:', row['text'].values[0])
             annotation = input('1. (f)avor 2. (a)gainst 3. (n)either or 4. (u)unsure? 5. (q) to exit :  ')
             if len(annotation) == 0:
-                print('Empty inpu, skipping')
+                print('Empty input, skipping')
                 continue
             if annotation[0] in ['f', '1']:
                 annotation = 'favor'
@@ -41,13 +41,13 @@ def annotate(file_path, output_file, encoding='utf-8'):
             print('Chose', annotation)
             line =  str(row['id'].values[0]) + ', ' + str(row['author'].values[0])+ ', '
             line += str(row['created_utc'].values[0]) + ',' + str(row['score'].values[0]) + ','
-            line += str(row['score'].values[0]) + ',' + str(row['subreddit'].values[0]) + ',"'
+            line += str(row['score'].values[0]) + ',"'
             line += str(row['text'].values[0]) + '",' + annotation + '\n'
             file.write(line)
             annotated += 1
 
 if __name__ == '__main__':
-    file_path = './data/p_c_1620679531_180d.csv'
-    output_file = './data/annotations.csv'
+    file_path = '../data/p_c_1620679531_180d.csv'
+    output_file = '../data/annotations.csv'
 
     annotate(file_path, output_file)
