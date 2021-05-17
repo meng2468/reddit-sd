@@ -6,7 +6,9 @@ import numpy as np
 
 # Trainer functions
 def train(max_epoch, model, optimizer, criterion, train_iterator, val_iterator, cache="../results", save_history=False):
-    """ Trainer function for StDClassifier. """    
+    """ Trainer function for StDClassifier. """ 
+    print("*"*40)
+    print("Starting to train model")
     # save history for later visualization
     history_df = pd.DataFrame({
         'type': [], # train or validation
