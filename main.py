@@ -11,7 +11,7 @@ import argparse
 # custom imports
 from stance.trainer import train, evaluate
 from stance.models import StDClassifier
-from tools.processing import makeSplits
+from tools.processing import makeSplits, targetIterator
 
 def _makeParser():
     available_models = [ "bert-base-uncased" ]
@@ -55,9 +55,34 @@ def bert():
     train(config['max_epoch'], model, optimizer, criterion, train_iter, val_iter, save_history=True)
 
     # test
-    metrics = evaluate(model, optimizer, criterion, test_iter)
-    loss, acc, fscore, precision, recall = [v for v in metrics.values()]
+    macro = dict(loss=[], acc=[], fscore=[], precision=[], recall=[])
+    for target in range(len(TARGET.vocab)):
+        metrics = evaluate(model, targetIterator(test_iter, target), criterion)
+        loss, acc, fscore, precision, recall = [v[~np.isnan(v)] for v in metrics.values()]
 
+        if loss.shape[0] > 0:
+            # append to macro scores
+            for k, v in metrics.items(): 
+                macro[k] = np.concatenate([macro[k], v[~np.isnan(v)]])
+
+            # verbose
+            display = [
+                f"Loss {loss.mean():.2e}",
+                f"Acc {acc.mean()*100:.2f}%",
+                f"F1 {fscore.mean():.3f}",
+                f"Precision {precision.mean():.3f}",
+                f"Recall {recall.mean():.3f}",
+            ]
+            print(TARGET.vocab.itos[target], ": ", '   '.join(display), sep='')
+
+    macro_display = [
+        f"Loss {macro['loss'].mean():.2e}",
+        f"Acc {macro['acc'].mean()*100:.2f}%",
+        f"F1 {macro['fscore'].mean():.3f}",
+        f"Precision {macro['precision'].mean():.3f}",
+        f"Recall {macro['recall'].mean():.3f}",
+    ] 
+    print("MACRO: ", '   '.join(macro_display))
 
 if __name__ == "__main__":
     bert()
