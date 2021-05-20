@@ -51,7 +51,7 @@ def train(max_epoch, model, optimizer, criterion, train_iterator, val_iterator, 
         # save checkpoint
         state = {
             'epoch': epoch + 1,
-            'architecture': model.name,
+            # 'architecture': model.name,
             'state_dict': model.state_dict(),
             # 'optimizer': optimizer.state_dict(),
             'best_acc': best_val_acc,
