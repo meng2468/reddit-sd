@@ -69,7 +69,6 @@ def get_processed_data(file_path):
 # ============= Datasets processing  =============
 def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
     """ Make splits from given dataset. Return train/val/test iterators. """
-    print("*"*40)
     print(f"Making dataset splits ({dataset})")
     available_datasets = [ "SemEval2016Task6" ]
     assert dataset in available_datasets, "Invalid dataset, must be one of {}.".format(' | '.join(available_datasets))
@@ -87,7 +86,7 @@ def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
     dataset_info = {
         'SemEval2016Task6': dict(
             dir=f"{data_dir}/SemEval2016Task6/", 
-            format="TSV",
+            format="tsv",
             encoding="latin-1",
             train="trainingdata-all-annotations.txt", 
             val="trialdata-all-annotations.txt", 
@@ -96,11 +95,13 @@ def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
                     fix_length=128, pad_token=tokenizer.convert_tokens_to_ids(tokenizer.pad_token), 
                     unk_token=tokenizer.convert_tokens_to_ids(tokenizer.unk_token)), 
             label=data.Field(sequential=False, batch_first=True, dtype=torch.long, is_target=True),
-            fields=("Stance", "Tweet")),
+            target=data.Field(sequential=False, batch_first=True, dtype=torch.long),
+            fields=("Stance", "Tweet", "Target")),
 
         'SemEval2019Task7': "TODO",
         }
     info = dataset_info[dataset]
+    LABEL, TEXT, TARGET = info['label'], info['text'], info['target']
 
     # encode files
     if "encoding" in info.keys():
@@ -124,21 +125,26 @@ def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
         path=info['dir'], 
         train=info['train'], validation=info['val'], test=info['test'], 
         format=info['format'], 
-        fields={info['fields'][0]: ('label', info['label']), info['fields'][1]: ('text', info['text'])}
+        fields={
+            info['fields'][0]: ('label', LABEL), 
+            info['fields'][1]: ('text', TEXT),
+            info['fields'][2]: ('target', TARGET)
+            }
         )
-    info['label'].build_vocab(train_data)
+    LABEL.build_vocab(train_data)
+    TARGET.build_vocab(train_data)
 
     # make splits
     train_iter, val_iter, test_iter = data.BucketIterator.splits(
         (train_data, val_data, test_data), 
         batch_size=kwargs.get('bs', 32),
-        sort_key=lambda x: len(x.text),
+        sort_key=lambda x: x.target,
         sort_within_batch=True,
         shuffle=True,
         device=kwargs.get('device', torch.device('cpu'))
     )
     if return_fields:
-        return (train_iter, val_iter, test_iter), (info['label'], info['text'])
+        return (train_iter, val_iter, test_iter), (LABEL, TEXT, TARGET)
     return train_iter, val_iter, test_iter
 
 # ============= Useful  =============
