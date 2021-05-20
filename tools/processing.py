@@ -154,3 +154,15 @@ def encodeFile(input_file, output_file, input_enc="latin-1", output_enc="utf-8")
             for line in f:
                 new_f.write(line)
     print(f"Encoded {input_file} as {output_file} from {input_enc} into {output_enc}.")
+
+def targetIterator(iterator, target):
+    """ Transforms the iterator to match a specific target """
+    for batch in iterator:
+        mask = torch.where(batch.target==target, True, False)
+        batch.text = batch.text[mask]
+        batch.target = batch.target[mask]
+        batch.label = batch.label[mask]
+        if batch.text.shape[0] > 0: # skip empty batches
+            yield batch
+        else:
+            continue
