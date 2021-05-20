@@ -1,5 +1,6 @@
 import os
 import time
+import shutil
 import torch
 import pandas as pd
 import numpy as np
@@ -7,7 +8,6 @@ import numpy as np
 # Trainer functions
 def train(max_epoch, model, optimizer, criterion, train_iterator, val_iterator, cache="../results", save_history=False):
     """ Trainer function for StDClassifier. """ 
-    print("*"*40)
     print("Starting to train model")
     # save history for later visualization
     history_df = pd.DataFrame({
@@ -30,11 +30,11 @@ def train(max_epoch, model, optimizer, criterion, train_iterator, val_iterator, 
 
         # train one epoch
         train_metrics = _trainOneEpoch(model, train_iterator, optimizer, criterion)
-        train_loss, train_acc, train_fscore, train_precision, train_recall = [v for v in train_metrics.values()]
+        train_loss, train_acc, train_fscore, train_precision, train_recall = [v[~np.isnan(v)] for v in train_metrics.values()]
 
         # evaluate
         val_metrics = evaluate(model, val_iterator, criterion)
-        val_loss, val_acc, val_fscore, val_precision, val_recall = [v for v in val_metrics.values()]
+        val_loss, val_acc, val_fscore, val_precision, val_recall = [v[~np.isnan(v)] for v in val_metrics.values()]
 
         # stats
         duration = time.time() - start_time
@@ -96,7 +96,7 @@ def evaluate(model, iterator, criterion):
             loss = criterion(logits, batch.label)
             acc = _accuracy(logits, batch.label)
             metrics = _metrics(logits, batch.label)
-            fscore, precision, recall = [m for m in metrics.values()]
+            fscore, precision, recall = [m[~np.isnan(m)] for m in metrics.values()]
 
             epoch_metrics['loss'].append(loss.item())
             epoch_metrics['acc'].append(acc.item())
@@ -124,7 +124,7 @@ def _trainOneEpoch(model, iterator, optimizer, criterion):
         loss = criterion(logits, batch.label)
         acc = _accuracy(logits, batch.label)
         metrics = _metrics(logits, batch.label)
-        fscore, precision, recall = [m for m in metrics.values()]
+        fscore, precision, recall = [m[~np.isnan(m)] for m in metrics.values()]
 
         loss.backward()
         optimizer.step()
@@ -175,7 +175,7 @@ def _metrics(y_pred, y_true, beta=1.0, tag=1.0):
     precision = tp / (tp + fp + epsilon)
     recall = tp / (tp + fn + epsilon)
 
-    fscore = (beta**2+1) * (precision*recall) / ((beta**2)*precision + recall)
+    fscore = (beta**2+1) * (precision*recall) / ((beta**2)*precision + recall + epsilon)
 
     return { 'fscore': fscore, 'precision': precision, 'recall': recall }
 
