@@ -41,11 +41,11 @@ def bert():
     # data
     iterators, fields = makeSplits(config['dataset'], tokenizer, return_fields=True, bs=config['bs'], device=device)
     train_iter, val_iter, test_iter = iterators
-    LABEL, TEXT = fields 
+    LABEL, TEXT, TARGET = fields 
     # train_iter, val_iter, test_iter = makeSplits(config['dataset'], tokenizer, **config)
 
     # init
-    model = StDClassifier(base_model, len(LABEL.vocab))
+    model = StDClassifier(base_model, len(LABEL.vocab), heads=len(TARGET.vocab))
     optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
     criterion = nn.CrossEntropyLoss()
     model = model.to(device)
