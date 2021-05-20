@@ -6,8 +6,11 @@ import pandas as pd
 import numpy as np
 
 # Trainer functions
-def train(max_epoch, model, optimizer, criterion, train_iterator, val_iterator, cache="../results", save_history=False):
-    """ Trainer function for StDClassifier. """ 
+def train(max_epoch, model, optimizer, criterion, train_iterator, val_iterator, cache="./results", save_history=False):
+    """ Trainer function for StDClassifier. """
+    if not os.path.isdir(cache):
+        os.makedirs(cache)
+        print(f"Created cache directory '{cache}'")
     print("Starting to train model")
     # save history for later visualization
     history_df = pd.DataFrame({
@@ -22,7 +25,7 @@ def train(max_epoch, model, optimizer, criterion, train_iterator, val_iterator, 
 
     best_val_acc = -float('inf')
     for epoch in range(max_epoch):
-        print(f"Epoch [{epoch+1:03}/{max_epoch}]")
+        print(f"Epoch [{epoch+1}/{max_epoch}]")
         model.train() # make sure model is in train mode
 
         # timer
