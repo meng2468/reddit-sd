@@ -35,16 +35,19 @@ def bert():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # pretrained models
+    print("{:=^50}".format(" Loading PLMs "))  
     tokenizer = AutoTokenizer.from_pretrained(config['model_name'])
     base_model = AutoModel.from_pretrained(config['model_name'])
 
     # data
+    print("{:=^50}".format(" Loading data "))  
     iterators, fields = makeSplits(config['dataset'], tokenizer, return_fields=True, bs=config['bs'], device=device)
     train_iter, val_iter, test_iter = iterators
     LABEL, TEXT, TARGET = fields 
     # train_iter, val_iter, test_iter = makeSplits(config['dataset'], tokenizer, **config)
 
     # init
+    print("{:=^50}".format(" Initialization "))  
     model = StDClassifier(base_model, len(LABEL.vocab), heads=len(TARGET.vocab))
     optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
     criterion = nn.CrossEntropyLoss()
@@ -52,9 +55,11 @@ def bert():
     criterion = criterion.to(device)
 
     # train
+    print("{:=^50}".format(" Training "))  
     train(config['max_epoch'], model, optimizer, criterion, train_iter, val_iter, save_history=True)
 
     # test
+    print("{:=^50}".format(" Evaluation "))  
     macro = dict(loss=[], acc=[], fscore=[], precision=[], recall=[])
     for target in range(len(TARGET.vocab)):
         metrics = evaluate(model, targetIterator(test_iter, target), criterion)
