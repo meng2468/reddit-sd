@@ -81,7 +81,70 @@ def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
     else:
         data_dir = None
     assert data_dir, "Please download dataset using 'datasets.sh' !"
+
+    # fields
+    TEXT = data.Field(
+        use_vocab=False, tokenize=tokenizer.encode, lower=False, include_lengths=False, batch_first=True,
+        fix_length=128, pad_token=tokenizer.convert_tokens_to_ids(tokenizer.pad_token), 
+        unk_token=tokenizer.convert_tokens_to_ids(tokenizer.unk_token))
+    LABEL = data.Field(sequential=False, batch_first=True, dtype=torch.long, is_target=True)
+    TARGET = data.Field(sequential=False, batch_first=True, dtype=torch.long)
     
+    # preprocess
+    if dataset == "SemEval2016Task6":
+        path = f"{data_dir}/SemEval2016Task6/"
+
+        # encode files
+        encoding = "latin-1"
+        train = os.path.join(path, "trainingdata-all-annotations.txt")
+        val = os.path.join(path, "trialdata-all-annotations.txt")
+        test = os.path.join(path, "testdata-taskA-all-annotations.txt")
+        new_train = os.path.join(path, "train.txt")
+        new_val = os.path.join(path, "val.txt")
+        new_test = os.path.join(path, "test.txt")
+
+        encodeFile(train, new_train, encoding, "utf-8")
+        encodeFile(val, new_val, encoding, "utf-8")
+        encodeFile(test, new_test, encoding, "utf-8")
+
+        fields = {
+            "Stance": ('label', LABEL), 
+            "Tweet": ('text', TEXT),
+            "Target": ('target', TARGET)
+            }
+
+    else:
+        raise NotImplementedError("Invalid dataset name")
+
+    # load data into torch Dataset (tabular dataset)
+    train_data, val_data, test_data = data.TabularDataset.splits(
+        path=path, 
+        train="train.txt", validation="val.txt", test="test.txt", 
+        format="tsv", 
+        fields=fields
+    )
+
+    # build vocab
+    LABEL.build_vocab(train_data)
+    TARGET.build_vocab(train_data)
+
+    # make splits
+    train_iter, val_iter, test_iter = data.BucketIterator.splits(
+        (train_data, val_data, test_data), 
+        batch_size=kwargs.get('bs', 32),
+        sort_key=lambda x: x.target,
+        sort_within_batch=True,
+        shuffle=True,
+        device=kwargs.get('device', torch.device('cpu'))
+    )
+
+    # return iterators (and fields)
+    if return_fields:
+        return (train_iter, val_iter, test_iter), (LABEL, TEXT, TARGET)
+    return train_iter, val_iter, test_iter
+
+
+
     # informations
     dataset_info = {
         'SemEval2016Task6': dict(
