@@ -70,7 +70,7 @@ def get_processed_data(file_path):
 def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
     """ Make splits from given dataset. Return train/val/test iterators. """
     print(f"Making dataset splits ({dataset})")
-    available_datasets = [ "SemEval2016Task6" ]
+    available_datasets = [ "SemEval2016Task6", "ARC" ]
     assert dataset in available_datasets, "Invalid dataset, must be one of {}.".format(' | '.join(available_datasets))
 
     # data directory
@@ -113,6 +113,37 @@ def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
             "Target": ('target', TARGET)
             }
 
+    elif dataset == "ARC":
+        path = f"{data_dir}/ARC/"
+        bodyfile = os.path.join(path, "arc_bodies.csv")
+        trainfile = os.path.join(path, "arc_stances_train.csv")
+        testfile = os.path.join(path, "arc_stances_test.csv")
+
+        # load data
+        bodies = pd.read_csv(bodyfile)
+        train_data = pd.read_csv(trainfile).merge(bodies, how='left', on='Body ID')
+        test_data = pd.read_csv(testfile).merge(bodies, how='left', on='Body ID')   
+
+        # split train into train/val
+        ratio = 0.7
+        N = train_data.shape[0]
+        idx = np.random.choice(range(N), size=int(N*ratio), replace=False)
+        mask = np.where(np.isin(range(N), idx), True, False)
+        val_data = train_data[~mask]
+        train_data = train_data[mask] 
+
+        # save newly created data
+        train_data.to_csv(os.path.join(path, "train.txt"), sep='\t')
+        test_data.to_csv(os.path.join(path, "val.txt"), sep='\t')
+        test_data.to_csv(os.path.join(path, "test.txt"), sep='\t')
+
+        # fields
+        fields = {
+            "Stance": ('label', LABEL), 
+            "articleBody": ('text', TEXT),
+            "Headline": ('target', TARGET)
+            }
+
     else:
         raise NotImplementedError("Invalid dataset name")
 
@@ -141,74 +172,7 @@ def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
     # return iterators (and fields)
     if return_fields:
         return (train_iter, val_iter, test_iter), (LABEL, TEXT, TARGET)
-    return train_iter, val_iter, test_iter
-
-
-
-    # informations
-    dataset_info = {
-        'SemEval2016Task6': dict(
-            dir=f"{data_dir}/SemEval2016Task6/", 
-            format="tsv",
-            encoding="latin-1",
-            train="trainingdata-all-annotations.txt", 
-            val="trialdata-all-annotations.txt", 
-            test="testdata-taskA-all-annotations.txt", 
-            text=data.Field(use_vocab=False, tokenize=tokenizer.encode, lower=False, include_lengths=False, batch_first=True,
-                    fix_length=128, pad_token=tokenizer.convert_tokens_to_ids(tokenizer.pad_token), 
-                    unk_token=tokenizer.convert_tokens_to_ids(tokenizer.unk_token)), 
-            label=data.Field(sequential=False, batch_first=True, dtype=torch.long, is_target=True),
-            target=data.Field(sequential=False, batch_first=True, dtype=torch.long),
-            fields=("Stance", "Tweet", "Target")),
-
-        'SemEval2019Task7': "TODO",
-        }
-    info = dataset_info[dataset]
-    LABEL, TEXT, TARGET = info['label'], info['text'], info['target']
-
-    # encode files
-    if "encoding" in info.keys():
-        train = os.path.join(info['dir'], info['train'])
-        val = os.path.join(info['dir'], info['val'])
-        test = os.path.join(info['dir'], info['test'])
-        new_train = os.path.join(info['dir'], "train.txt")
-        new_val = os.path.join(info['dir'], "val.txt")
-        new_test = os.path.join(info['dir'], "test.txt")
-
-        encodeFile(train, new_train, info['encoding'], "utf-8")
-        encodeFile(val, new_val, info['encoding'], "utf-8")
-        encodeFile(test, new_test, info['encoding'], "utf-8")
-
-        info['train'] = "train.txt"
-        info['val'] = "val.txt"
-        info['test'] = "test.txt"
-
-    # read data & build vocab
-    train_data, val_data, test_data = data.TabularDataset.splits(
-        path=info['dir'], 
-        train=info['train'], validation=info['val'], test=info['test'], 
-        format=info['format'], 
-        fields={
-            info['fields'][0]: ('label', LABEL), 
-            info['fields'][1]: ('text', TEXT),
-            info['fields'][2]: ('target', TARGET)
-            }
-        )
-    LABEL.build_vocab(train_data)
-    TARGET.build_vocab(train_data)
-
-    # make splits
-    train_iter, val_iter, test_iter = data.BucketIterator.splits(
-        (train_data, val_data, test_data), 
-        batch_size=kwargs.get('bs', 32),
-        sort_key=lambda x: x.target,
-        sort_within_batch=True,
-        shuffle=True,
-        device=kwargs.get('device', torch.device('cpu'))
-    )
-    if return_fields:
-        return (train_iter, val_iter, test_iter), (LABEL, TEXT, TARGET)
-    return train_iter, val_iter, test_iter
+    return train_iter, val_iter, test_iter    
 
 # ============= Useful  =============
 def encodeFile(input_file, output_file, input_enc="latin-1", output_enc="utf-8"):
