@@ -91,8 +91,8 @@ def evaluate(model, iterator, criterion):
     model.eval() # deactivate dropout
 
     with torch.no_grad():
-        for batch in iterator:            
-            logits = model.forward(batch.text)
+        for batch in iterator:
+            logits = model.forward((batch.text, batch.target))
             loss = criterion(logits, batch.label)
             acc = _accuracy(logits, batch.label)
             metrics = _metrics(logits, batch.label)
@@ -120,7 +120,7 @@ def _trainOneEpoch(model, iterator, optimizer, criterion):
     for op, batch in enumerate(iterator):
         optimizer.zero_grad()
         
-        logits = model.forward(batch.text) # text, text_lengths = batch.text
+        logits = model.forward((batch.text, batch.target))
         loss = criterion(logits, batch.label)
         acc = _accuracy(logits, batch.label)
         metrics = _metrics(logits, batch.label)
