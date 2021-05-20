@@ -96,7 +96,7 @@ def evaluate(model, iterator, criterion):
             loss = criterion(logits, batch.label)
             acc = _accuracy(logits, batch.label)
             metrics = _metrics(logits, batch.label)
-            fscore, precision, recall = [m[~np.isnan(m)] for m in metrics.values()]
+            fscore, precision, recall = [m[~torch.isnan(m)] for m in metrics.values()]
 
             epoch_metrics['loss'].append(loss.item())
             epoch_metrics['acc'].append(acc.item())
@@ -124,7 +124,7 @@ def _trainOneEpoch(model, iterator, optimizer, criterion):
         loss = criterion(logits, batch.label)
         acc = _accuracy(logits, batch.label)
         metrics = _metrics(logits, batch.label)
-        fscore, precision, recall = [m[~np.isnan(m)] for m in metrics.values()]
+        fscore, precision, recall = [m[~torch.isnan(m)] for m in metrics.values()]
 
         loss.backward()
         optimizer.step()
