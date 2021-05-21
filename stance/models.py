@@ -20,7 +20,7 @@ class StDClassifier(nn.Module):
   References: 
     -
   """
-  def __init__(self, base_model, output_dim, base_model_output_size=768, dropout=.05):
+  def __init__(self, base_model, output_dim, base_model_output_size=768, dropout=0.5):
     super().__init__()
     self.base_model = base_model
     self.output_dim = output_dim
@@ -81,7 +81,7 @@ class StDClassifierWithTargetSpecificHeads(nn.Module):
   References: 
     -
   """
-  def __init__(self, base_model, output_dim, heads=1, base_model_output_size=768, dropout=.05):
+  def __init__(self, base_model, output_dim, heads=1, base_model_output_size=768, dropout=0.5):
     super().__init__()
     self.base_model = base_model
     self.output_dim = output_dim
