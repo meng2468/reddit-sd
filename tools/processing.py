@@ -200,3 +200,18 @@ def targetIterator(iterator, target):
             yield batch
         else:
             continue
+  
+def getDistinctTargets(iterator, tokenizer):
+    distinct_targets = {}
+    for batch in iterator:
+        tgt = batch.target[0]
+        ids = tgt[tgt != 0] # remove [PAD]
+        ids = ids.tolist()[1:-1] # remove [CLS] and [SEP]
+
+        tokens = tokenizer.convert_ids_to_tokens(ids) 
+        target = tokenizer.convert_tokens_to_string(tokens)
+
+        if target not in distinct_targets:
+            distinct_targets[target] = tgt
+    
+    return distinct_targets
