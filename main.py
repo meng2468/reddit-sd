@@ -48,7 +48,8 @@ def bert():
 
     # init
     print("{:=^50}".format(" Initialization "))  
-    model = StDClassifier(base_model, len(LABEL.vocab), heads=len(TARGET.vocab))
+    # model = StDClassifierWithTargetSpecificHeads(base_model, len(LABEL.vocab), heads=len(TARGET.vocab))
+    model = StDClassifier(base_model, len(LABEL.vocab))
     optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
     criterion = nn.CrossEntropyLoss()
     model = model.to(device)
