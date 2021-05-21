@@ -11,7 +11,7 @@ import argparse
 # custom imports
 from stance.trainer import train, evaluate
 from stance.models import StDClassifier
-from tools.processing import makeSplits, targetIterator
+from tools.processing import makeSplits, targetIterator, getDistinctTargets
 
 def _makeParser():
     available_models = [ "bert-base-uncased" ]
@@ -61,8 +61,13 @@ def bert():
     # test
     print("{:=^50}".format(" Evaluation "))  
     macro = dict(loss=[], acc=[], fscore=[], precision=[], recall=[])
-    for target in range(len(TARGET.vocab)):
-        metrics = evaluate(model, targetIterator(test_iter, target), criterion)
+
+    # for target in range(len(TARGET.vocab)):
+    #     target_name = TARGET.vocab.itos[target]
+    distinct_targets = getDistinctTargets(train_iter, tokenizer)
+    for target_name, target in distinct_targets.items():
+        target_iter = targetIterator(train_iter, target)
+        metrics = evaluate(model, target_iter, criterion)
         loss, acc, fscore, precision, recall = [v[~np.isnan(v)] for v in metrics.values()]
 
         if loss.shape[0] > 0:
@@ -78,7 +83,7 @@ def bert():
                 f"Precision {precision.mean():.3f}",
                 f"Recall {recall.mean():.3f}",
             ]
-            print(TARGET.vocab.itos[target], ": ", '   '.join(display), sep='')
+            print(f"{target_name.title()}:", '   '.join(display))
 
     macro_display = [
         f"Loss {macro['loss'].mean():.2e}",
