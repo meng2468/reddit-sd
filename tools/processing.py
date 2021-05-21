@@ -74,13 +74,10 @@ def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
     assert dataset in available_datasets, "Invalid dataset, must be one of {}.".format(' | '.join(available_datasets))
 
     # data directory
-    if os.path.isdir("./data/"):
-        data_dir = "data"
-    elif os.path.isdir("../data/"):
-        data_dir = "../data"
-    else:
-        data_dir = None
-    assert data_dir, "Please download dataset using 'datasets.sh' !"
+    basedir = os.path.dirname(os.path.realpath(__file__))
+    parentdir = os.path.dirname(basedir)
+    data_dir = os.path.join(parentdir, "data")
+    assert len(os.listdir(data_dir)) > 0, "Please download dataset using 'datasets.sh' !"
 
     # fields
     TEXT = data.Field(
