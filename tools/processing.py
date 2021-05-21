@@ -88,7 +88,14 @@ def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
         fix_length=128, pad_token=tokenizer.convert_tokens_to_ids(tokenizer.pad_token), 
         unk_token=tokenizer.convert_tokens_to_ids(tokenizer.unk_token))
     LABEL = data.Field(sequential=False, batch_first=True, dtype=torch.long, is_target=True)
-    TARGET = data.Field(sequential=False, batch_first=True, dtype=torch.long)
+    if kwargs.get('target_as_label', False):
+        TARGET = data.Field(sequential=False, batch_first=True, dtype=torch.long)
+    else:
+        target_fix_length = 32 # should be smaller than TEXT's
+        TARGET = data.Field(
+            use_vocab=False, tokenize=tokenizer.encode, lower=False, include_lengths=False, batch_first=True,
+            fix_length=target_fix_length, pad_token=tokenizer.convert_tokens_to_ids(tokenizer.pad_token), 
+            unk_token=tokenizer.convert_tokens_to_ids(tokenizer.unk_token))
     
     # preprocess
     if dataset == "SemEval2016Task6":
