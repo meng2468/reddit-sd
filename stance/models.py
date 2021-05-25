@@ -80,6 +80,7 @@ class StDClassifierQAVersion(nn.Module):
               layer.bias.data.zero_()
     
   def forward(self, inputs, **args):
+    assert isinstance(inputs, tuple), "Invalid input, must be a tuple of (inputs, targets)."
     inputs, targets = inputs
 
     # through language model
@@ -147,6 +148,7 @@ class StDClassifierWithTargetSpecificHeads(nn.Module):
     #   inputs, text_lengths = inputs
     #   inputs = nn.utils.rnn.pack_padded_sequence(inputs, text_lengths.to('cpu'))
     #   inputs = inputs.data
+    assert isinstance(inputs, tuple), "Invalid input, must be a tuple of (inputs, targets)."
     inputs, targets = inputs
     hidden, pooler = self.base_model(inputs, return_dict=False)
     hidden = hidden[:,0,:].squeeze(1) # sentence classification: ignore all but the first vector
