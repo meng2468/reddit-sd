@@ -2,11 +2,52 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class StDClassifier(nn.Module):
+class SimpleStDClassifier(nn.Module):
   """ 
-  StDClassifier 
+  SimpleStDClassifier
   --------------------------------------------------
-  StDClassifier
+  SimpleStDClassifier is meant to be trained on ONE specific target.
+
+  Parameters:
+    - base_model              : (nn.Module) base model, e.g. BERT, GPT...
+    - output_dim              : (int) output dimension
+    - base_model_output_size  : (int) base_model output dimension, e.g. bert=768
+  
+  Notes:
+    - 
+  """
+  def __init__(self, base_model, output_dim, base_model_output_size=768):
+    super().__init__()
+    self.base_model = base_model
+    self.output_dim = output_dim
+
+    self.classifier = nn.Sequential(
+        nn.Linear(base_model_output_size, output_dim)
+    )
+
+    # initialize weights
+    for layer in self.classifier:
+      if isinstance(layer, nn.Linear):
+          layer.weight.data.normal_(mean=0.0, std=0.02)
+          if layer.bias is not None:
+              layer.bias.data.zero_()
+    
+  def forward(self, inputs, **args):
+    # through language model
+    hidden, pooler = self.base_model(inputs, return_dict=False)
+
+    # sentence classification: ignore all but the first vector
+    hidden = hidden[:,0,:]
+
+    # through classifier
+    logits = self.classifier(hidden)
+    return logits
+
+class StDClassifierQAVersion(nn.Module):
+  """ 
+  StDClassifierQAVersion
+  --------------------------------------------------
+  StDClassifier Question-Answering version with concatenation of input & targets within the model
 
   Parameters:
     - base_model              : (nn.Module) base model, e.g. BERT, GPT...
@@ -15,10 +56,8 @@ class StDClassifier(nn.Module):
     - dropout:                : (float) dropout rate
   
   Notes:
-    - 
-  
-  References: 
-    -
+    - Makes more sense when defining Stance Detection as a Question-Answering problem, i.e. with multiple stances per dataset
+      (which we don't have in the Reddit dataset)
   """
   def __init__(self, base_model, output_dim, base_model_output_size=768, dropout=0.5):
     super().__init__()
