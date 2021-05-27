@@ -11,7 +11,6 @@ def train(max_epoch, model, optimizer, criterion, train_iterator, val_iterator, 
     if not os.path.isdir(cache):
         os.makedirs(cache)
         print(f"Created cache directory '{cache}'")
-    print("Starting to train model")
     # save history for later visualization
     history_df = pd.DataFrame({
         'type': [], # train or validation
