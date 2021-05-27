@@ -33,8 +33,11 @@ class SimpleStDClassifier(nn.Module):
               layer.bias.data.zero_()
     
   def forward(self, inputs, **args):
+    if isinstance(inputs, tuple):
+      inputs, _ = inputs
+
     # through language model
-    hidden, pooler = self.base_model(inputs, return_dict=False)
+    hidden = self.base_model(inputs, return_dict=False)[0] # hidden, pooler = ...
 
     # sentence classification: ignore all but the first vector
     hidden = hidden[:,0,:]
