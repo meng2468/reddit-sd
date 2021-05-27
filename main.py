@@ -14,24 +14,29 @@ from stance.models import SimpleStDClassifier
 from tools.processing import makeSplits, targetIterator, getDistinctTargets
 
 def _makeParser():
-    available_models = [ "bert-base-uncased" ]
+    available_models = [ "bert-base-uncased", "albert-base-v2", "distilbert-base-uncased", "roberta-base" ]
     available_datasets = [ "SemEval2016Task6" ]
 
     parser = argparse.ArgumentParser(description="Stance Detection benchmark")
+    # required arguments
     parser.add_argument('model', type=str, metavar='BASE_MODEL', choices=available_models, 
         help="pretrained base model, must be one of {}".format(' | '.join(available_models)))
     parser.add_argument('dataset', type=str, metavar='DATASET', choices=available_datasets, 
         help="dataset name, must be one of {}".format(' | '.join(available_datasets)))
+    
+    # optional arguments
+    parser.add_argument('--drop', type=float, default=0, help="dropout rate")
+    parser.add_argument('--bs', type=int, default=32, help='batch size')
+    parser.add_argument('--lr', type=float, default=1e-3, help='initial learning rate')
+    parser.add_argument('--epochs', type=int, default=10, help='max epochs')
 
-def bert():
-    # config
-    config = {
-        'model_name': "bert-base-uncased",
-        'dataset': "SemEval2016Task6",
-        'max_epoch': 5,
-        'lr': 0.0001, # learning rate
-        'bs': 16, # batch size
-    }
+    parser.add_argument('--seed', type=int, default=None, help='optional seed')
+    parser.add_argument('--cache', type=str, default="./results", help='cache directory to save models')
+    parser.add_argument('--save', action='store_true', help="save training history")
+    parser.add_argument('-v', '--verbose', action='store_true', help="print log messages")
+    return parser
+
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # pretrained models
