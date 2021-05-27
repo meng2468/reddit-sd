@@ -152,20 +152,26 @@ def loadData(dataset, tokenizer, **kwargs):
     # return data and fields
     return (train_data, test_data), (LABEL, TEXT, TARGET)
 
-    # make splits
-    train_iter, val_iter, test_iter = data.BucketIterator.splits(
-        (train_data, val_data, test_data), 
-        batch_size=kwargs.get('bs', 32),
-        sort_key=lambda x: x.target,
-        sort_within_batch=True,
-        shuffle=True,
-        device=kwargs.get('device', torch.device('cpu'))
-    )
+def makeSplits(all_data, target, bs, device):
+    all_train_data, all_test_data = all_data
 
-    # return iterators (and fields)
-    if return_fields:
-        return (train_iter, val_iter, test_iter), (LABEL, TEXT, TARGET)
-    return train_iter, val_iter, test_iter    
+    # new iterators
+    train_data = [s for s in all_train_data if s.target == target]
+    test_data = [s for s in all_test_data if s.target == target]
+
+    # convert to torchtext Dataset
+    train_data = data.Dataset(train_data, all_train_data.fields)
+    test_data = data.Dataset(test_data, all_test_data.fields)
+
+    # make splits
+    train_iter, test_iter = data.BucketIterator.splits(
+        (train_data, test_data), 
+        sort=False,
+        batch_size=bs,
+        shuffle=True,
+        device=device
+    )
+    return train_iter, test_iter
 
 # ============= Useful  =============
 def encodeFile(input_file, output_file, input_enc="latin-1", output_enc="utf-8"):
