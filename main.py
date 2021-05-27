@@ -10,7 +10,7 @@ import argparse
 
 # custom imports
 from stance.trainer import train, evaluate
-from stance.models import StDClassifier
+from stance.models import SimpleStDClassifier
 from tools.processing import makeSplits, targetIterator, getDistinctTargets
 
 def _makeParser():
@@ -49,7 +49,7 @@ def bert():
     # init
     print("{:=^50}".format(" Initialization "))  
     # model = StDClassifierWithTargetSpecificHeads(base_model, len(LABEL.vocab), heads=len(TARGET.vocab))
-    model = StDClassifier(base_model, len(LABEL.vocab))
+    model = SimpleStDClassifier(base_model, len(LABEL.vocab))
     optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
     criterion = nn.CrossEntropyLoss()
     model = model.to(device)

@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 
 # Trainer functions
-def train(max_epoch, model, optimizer, criterion, train_iterator, val_iterator, cache="./results", save_history=False):
+def train(max_epoch, model, optimizer, criterion, train_iterator, val_iterator, cache="./results", save_history=False, verbose=False):
     """ Trainer function for StDClassifier. """
     if not os.path.isdir(cache):
         os.makedirs(cache)
@@ -32,7 +32,7 @@ def train(max_epoch, model, optimizer, criterion, train_iterator, val_iterator, 
         start_time = time.time()
 
         # train one epoch
-        train_metrics = _trainOneEpoch(model, train_iterator, optimizer, criterion)
+        train_metrics = _trainOneEpoch(model, train_iterator, optimizer, criterion, verbose=verbose)
         train_loss, train_acc, train_fscore, train_precision, train_recall = [v[~np.isnan(v)] for v in train_metrics.values()]
 
         # evaluate
@@ -65,22 +65,23 @@ def train(max_epoch, model, optimizer, criterion, train_iterator, val_iterator, 
         _saveCheckpoint(state, is_best, filename)
 
         # verbose
-        display = [
-            # f"Epoch [{epoch+1:03}/{max_epoch}]",
-            f"Time {duration:.3f}s",
-            f"Loss {train_loss.mean():.3e}",
-            f"Acc {train_acc.mean()*100:.2f}%",
-            f"F1 {train_fscore.mean():.3f}",
-            f"Precision {train_precision.mean():.3f}",
-            f"Recall {train_recall.mean():.3f}",
-            
-            f"Loss(val) {val_loss.mean():.2e}",
-            f"Acc(val) {val_acc.mean()*100:.2f}%",
-            f"F1(val) {val_fscore.mean():.3f}",
-            f"Precision(val) {val_precision.mean():.3f}",
-            f"Recall(val) {val_recall.mean():.3f}",
-        ]
-        print('   '.join(display))
+        if verbose:
+            display = [
+                # f"Epoch [{epoch+1:03}/{max_epoch}]",
+                f"Time {duration:.3f}s",
+                f"Loss {train_loss.mean():.3e}",
+                f"Acc {train_acc.mean()*100:.2f}%",
+                f"F1 {train_fscore.mean():.3f}",
+                f"Precision {train_precision.mean():.3f}",
+                f"Recall {train_recall.mean():.3f}",
+                
+                f"Loss(val) {val_loss.mean():.2e}",
+                f"Acc(val) {val_acc.mean()*100:.2f}%",
+                f"F1(val) {val_fscore.mean():.3f}",
+                f"Precision(val) {val_precision.mean():.3f}",
+                f"Recall(val) {val_recall.mean():.3f}",
+            ]
+            print('   '.join(display))
 
 def evaluate(model, iterator, criterion):
     epoch_metrics = {
@@ -109,7 +110,7 @@ def evaluate(model, iterator, criterion):
 
     return { k:np.array(v) for k, v in epoch_metrics.items() } 
 
-def _trainOneEpoch(model, iterator, optimizer, criterion):
+def _trainOneEpoch(model, iterator, optimizer, criterion, verbose=False):
     epoch_metrics = {
         'loss': [], 
         'acc': [],
@@ -138,17 +139,18 @@ def _trainOneEpoch(model, iterator, optimizer, criterion):
         epoch_metrics['precision'].append(precision.item())
         epoch_metrics['recall'].append(recall.item())
 
-        if (op-1) % 20  == 0: 
-          duration = time.time() - start_time
-          start_time = time.time()
-          display = [
-              "",
-              f"[{op:03}/{total_op}]",
-              f"{duration:.3f} s/op",
-              f"Loss {np.mean(epoch_metrics['loss'][op:]):.3e}",
-              f"F1 {np.mean(epoch_metrics['fscore'][op:]):.3f}",
-          ]
-          print('   '.join(display))        
+        if verbose:
+            if (op-1) % 20  == 0: 
+                duration = time.time() - start_time
+                start_time = time.time()
+                display = [
+                    "",
+                    f"[{op:03}/{total_op}]",
+                    f"{duration:.3f} s/op",
+                    f"Loss {np.mean(epoch_metrics['loss'][op:]):.3e}",
+                    f"F1 {np.mean(epoch_metrics['fscore'][op:]):.3f}",
+                ]
+                print('   '.join(display))        
 
     return { k:np.array(v) for k, v in epoch_metrics.items() } 
 
