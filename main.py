@@ -9,8 +9,8 @@ import pandas as pd
 import argparse
 
 # custom imports
-from stance.trainer import train, evaluate
-from stance.models import SimpleStDClassifier
+from models.trainer import train, evaluate
+from models.models import SimpleStDClassifier
 from tools.processing import makeSplits, targetIterator, getDistinctTargets
 
 def _makeParser():
