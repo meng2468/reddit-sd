@@ -67,8 +67,7 @@ def get_processed_data(file_path):
 
 
 # ============= Datasets processing  =============
-def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
-    """ Make splits from given dataset. Return train/val/test iterators. """
+def loadData(dataset, tokenizer, **kwargs):
     print(f"Making dataset splits ({dataset})")
     available_datasets = [ "SemEval2016Task6", "ARC" ]
     assert dataset in available_datasets, "Invalid dataset, must be one of {}.".format(' | '.join(available_datasets))
@@ -85,14 +84,12 @@ def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
         fix_length=128, pad_token=tokenizer.convert_tokens_to_ids(tokenizer.pad_token), 
         unk_token=tokenizer.convert_tokens_to_ids(tokenizer.unk_token))
     LABEL = data.Field(sequential=False, batch_first=True, dtype=torch.long, is_target=True)
-    if kwargs.get('target_as_label', False):
-        TARGET = data.Field(sequential=False, batch_first=True, dtype=torch.long)
-    else:
-        target_fix_length = 32 # should be smaller than TEXT's
-        TARGET = data.Field(
-            use_vocab=False, tokenize=tokenizer.encode, lower=False, include_lengths=False, batch_first=True,
-            fix_length=target_fix_length, pad_token=tokenizer.convert_tokens_to_ids(tokenizer.pad_token), 
-            unk_token=tokenizer.convert_tokens_to_ids(tokenizer.unk_token))
+    TARGET = data.Field(sequential=False, batch_first=True, dtype=torch.long)
+    
+    # TARGET = data.Field(
+    #     use_vocab=False, tokenize=tokenizer.encode, lower=False, include_lengths=False, batch_first=True,
+    #     fix_length=32, pad_token=tokenizer.convert_tokens_to_ids(tokenizer.pad_token), 
+    #     unk_token=tokenizer.convert_tokens_to_ids(tokenizer.unk_token))
     
     # preprocess
     if dataset == "SemEval2016Task6":
@@ -101,14 +98,11 @@ def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
         # encode files
         encoding = "latin-1"
         train = os.path.join(path, "trainingdata-all-annotations.txt")
-        val = os.path.join(path, "trialdata-all-annotations.txt")
         test = os.path.join(path, "testdata-taskA-all-annotations.txt")
         new_train = os.path.join(path, "train.txt")
-        new_val = os.path.join(path, "val.txt")
         new_test = os.path.join(path, "test.txt")
 
         encodeFile(train, new_train, encoding, "utf-8")
-        encodeFile(val, new_val, encoding, "utf-8")
         encodeFile(test, new_test, encoding, "utf-8")
 
         fields = {
@@ -128,17 +122,8 @@ def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
         train_data = pd.read_csv(trainfile).merge(bodies, how='left', on='Body ID')
         test_data = pd.read_csv(testfile).merge(bodies, how='left', on='Body ID')   
 
-        # split train into train/val
-        ratio = 0.7
-        N = train_data.shape[0]
-        idx = np.random.choice(range(N), size=int(N*ratio), replace=False)
-        mask = np.where(np.isin(range(N), idx), True, False)
-        val_data = train_data[~mask]
-        train_data = train_data[mask] 
-
         # save newly created data
         train_data.to_csv(os.path.join(path, "train.txt"), sep='\t')
-        test_data.to_csv(os.path.join(path, "val.txt"), sep='\t')
         test_data.to_csv(os.path.join(path, "test.txt"), sep='\t')
 
         # fields
@@ -152,9 +137,9 @@ def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
         raise NotImplementedError("Invalid dataset name")
 
     # load data into torch Dataset (tabular dataset)
-    train_data, val_data, test_data = data.TabularDataset.splits(
+    train_data, test_data = data.TabularDataset.splits(
         path=path, 
-        train="train.txt", validation="val.txt", test="test.txt", 
+        train="train.txt", test="test.txt", 
         format="tsv", 
         fields=fields
     )
@@ -162,6 +147,9 @@ def makeSplits(dataset, tokenizer, return_fields=False, **kwargs):
     # build vocab
     LABEL.build_vocab(train_data)
     TARGET.build_vocab(train_data)
+
+    # return data and fields
+    return (train_data, test_data), (LABEL, TEXT, TARGET)
 
     # make splits
     train_iter, val_iter, test_iter = data.BucketIterator.splits(
