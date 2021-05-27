@@ -1,17 +1,23 @@
 import os
 import time
-import torch
-import torch.nn as nn
-import transformers
-from transformers import AutoTokenizer, AutoModel
+import random
 import numpy as np
 import pandas as pd
 import argparse
 
+# torch
+import torch
+import torch.nn as nn
+import torch.backends.cudnn as cudnn
+
+# huggingface
+import transformers
+from transformers import AutoTokenizer, AutoModel
+
 # custom imports
-from stance.trainer import train, evaluate
-from stance.models import SimpleStDClassifier
-from tools.processing import makeSplits, targetIterator, getDistinctTargets
+from models.trainer import train, evaluate
+from models.models import SimpleStDClassifier
+from tools.processing import loadData, makeSplits
 
 def _makeParser():
     available_models = [ "bert-base-uncased", "albert-base-v2", "distilbert-base-uncased", "roberta-base" ]
