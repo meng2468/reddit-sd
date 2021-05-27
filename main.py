@@ -43,43 +43,61 @@ def _makeParser():
     return parser
 
 
+def main():
+    parser = _makeParser()
+    args = parser.parse_args()
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # pretrained models
-    print("{:=^50}".format(" Loading PLMs "))  
-    tokenizer = AutoTokenizer.from_pretrained(config['model_name'])
-    base_model = AutoModel.from_pretrained(config['model_name'])
+    # seed
+    if args.seed is not None:
+        random.seed(args.seed)
+        torch.manual_seed(args.seed)
+        cudnn.deterministic = True
+    cudnn.benchmark = True
+
+    # tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(args.model)
 
     # data
     print("{:=^50}".format(" Loading data "))  
-    iterators, fields = makeSplits(config['dataset'], tokenizer, return_fields=True, bs=config['bs'], device=device)
-    train_iter, val_iter, test_iter = iterators
-    LABEL, TEXT, TARGET = fields 
-    # train_iter, val_iter, test_iter = makeSplits(config['dataset'], tokenizer, **config)
+    all_data, fields = loadData(args.dataset, tokenizer, bs=args.bs, device=device)
+    LABEL, TEXT, TARGET = fields
 
-    # init
-    print("{:=^50}".format(" Initialization "))  
-    # model = StDClassifierWithTargetSpecificHeads(base_model, len(LABEL.vocab), heads=len(TARGET.vocab))
-    model = SimpleStDClassifier(base_model, len(LABEL.vocab))
-    optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
-    criterion = nn.CrossEntropyLoss()
-    model = model.to(device)
-    criterion = criterion.to(device)
-
-    # train
-    print("{:=^50}".format(" Training "))  
-    train(config['max_epoch'], model, optimizer, criterion, train_iter, val_iter, save_history=True)
-
-    # test
-    print("{:=^50}".format(" Evaluation "))  
+    distinct_targets = TARGET.vocab.itos[1:] # 0=<unk>
     macro = dict(loss=[], acc=[], fscore=[], precision=[], recall=[])
 
-    # for target in range(len(TARGET.vocab)):
-    #     target_name = TARGET.vocab.itos[target]
-    distinct_targets = getDistinctTargets(train_iter, tokenizer)
-    for target_name, target in distinct_targets.items():
-        target_iter = targetIterator(train_iter, target)
-        metrics = evaluate(model, target_iter, criterion)
+    # train one model per target
+    for t, target in enumerate(distinct_targets, 1):
+        print("{:=^50}".format(f" {target} ({t}/{len(distinct_targets)}) "))
+        cache_dir = os.path.join(args.cache, target)
+        print(f"Model will be saved in '{cache_dir}'")
+
+        # make splits
+        train_iter, test_iter = makeSplits(
+            all_data, target, args.bs, device
+            )        
+
+        # pretrained model
+        print(f"Loading {args.model}")
+        base_model = AutoModel.from_pretrained(args.model)
+
+        # init
+        print("Initializing model")
+        model = SimpleStDClassifier(base_model, len(LABEL.vocab))
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+        criterion = nn.CrossEntropyLoss()
+        model = model.to(device)
+        criterion = criterion.to(device)
+
+        # train
+        print("Training")
+        train(args.epochs, model, optimizer, criterion, train_iter, test_iter, 
+            save_history=args.save, cache=cache_dir, verbose=args.verbose
+            )
+
+        # test
+        print("Testing")
+        metrics = evaluate(model, test_iter, criterion)
         loss, acc, fscore, precision, recall = [v[~np.isnan(v)] for v in metrics.values()]
 
         if loss.shape[0] > 0:
@@ -95,8 +113,10 @@ def _makeParser():
                 f"Precision {precision.mean():.3f}",
                 f"Recall {recall.mean():.3f}",
             ]
-            print(f"{target_name.title()}:", '   '.join(display))
+            print(f"{target}:", '   '.join(display))
 
+    # macro evaluation
+    print("{:=^50}".format(" Evaluation "))
     macro_display = [
         f"Loss {macro['loss'].mean():.2e}",
         f"Acc {macro['acc'].mean()*100:.2f}%",
@@ -107,4 +127,4 @@ def _makeParser():
     print("MACRO: ", '   '.join(macro_display))
 
 if __name__ == "__main__":
-    bert()
+    main()
