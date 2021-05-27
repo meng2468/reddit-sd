@@ -68,6 +68,7 @@ def get_processed_data(file_path):
 
 # ============= Datasets processing  =============
 def loadData(dataset, tokenizer, **kwargs):
+    """ Make splits from given dataset. Return train/test iterators. """
     print(f"Making dataset splits ({dataset})")
     available_datasets = [ "SemEval2016Task6", "ARC" ]
     assert dataset in available_datasets, "Invalid dataset, must be one of {}.".format(' | '.join(available_datasets))
