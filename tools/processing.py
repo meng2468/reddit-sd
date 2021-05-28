@@ -180,30 +180,3 @@ def encodeFile(input_file, output_file, input_enc="latin-1", output_enc="utf-8")
             for line in f:
                 new_f.write(line)
     print(f"Encoded {input_file} as {output_file} from {input_enc} into {output_enc}.")
-
-def targetIterator(iterator, target):
-    """ Transforms the iterator to match a specific target """
-    for batch in iterator:
-        mask = (batch.target==target).prod(dim=1)
-        batch.text = batch.text[mask]
-        batch.target = batch.target[mask]
-        batch.label = batch.label[mask]
-        if batch.text.shape[0] > 0: # skip empty batches
-            yield batch
-        else:
-            continue
-  
-def getDistinctTargets(iterator, tokenizer):
-    distinct_targets = {}
-    for batch in iterator:
-        tgt = batch.target[0]
-        ids = tgt[tgt != 0] # remove [PAD]
-        ids = ids.tolist()[1:-1] # remove [CLS] and [SEP]
-
-        tokens = tokenizer.convert_ids_to_tokens(ids) 
-        target = tokenizer.convert_tokens_to_string(tokens)
-
-        if target not in distinct_targets:
-            distinct_targets[target] = tgt
-    
-    return distinct_targets
