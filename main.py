@@ -55,11 +55,10 @@ def main():
         cudnn.deterministic = True
     cudnn.benchmark = True
 
-    # tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
-
     # data
     print("{:=^50}".format(" Loading data "))  
+    print("Loading tokenizer")
+    tokenizer = AutoTokenizer.from_pretrained(args.model)
     all_data, fields = loadData(args.dataset, tokenizer, bs=args.bs, device=device)
     LABEL, TEXT, TARGET = fields
 
