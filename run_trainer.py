@@ -158,6 +158,8 @@ class ModelArguments:
 
 
 def main():
+    # ===== Get the datasets =====
+    print('{:=^50}'.format(" Initialise "))
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
@@ -275,9 +277,7 @@ def main():
 
     def preprocess_function(examples):
         # Tokenize the texts
-        args = (
-            (examples["text"],)
-        )
+        args = (examples["text"])
         result = tokenizer(*args, padding=padding, max_length=max_seq_length, truncation=True)
 
         # Map labels to IDs
@@ -309,7 +309,7 @@ def main():
             if data_args.max_eval_samples is not None:
                 eval_dataset = eval_dataset.select(range(data_args.max_eval_samples))
 
-        if training_args.do_predict or data_args.task_name is not None or data_args.test_file is not None:
+        if training_args.do_predict or data_args.test_file is not None:
             assert 'test' in datasets, "--do_predict requires a test dataset"
             predict_dataset = targeted_dataset['test']
             if data_args.max_predict_samples is not None:

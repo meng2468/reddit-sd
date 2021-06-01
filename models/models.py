@@ -32,7 +32,7 @@ class SimpleStDClassifier(nn.Module):
           if layer.bias is not None:
               layer.bias.data.zero_()
     
-  def forward(self, inputs, **args):
+  def forward(self, *inputs, **args):
     # through language model
     hidden, pooler = self.base_model(inputs, return_dict=False)
 
