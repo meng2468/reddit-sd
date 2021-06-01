@@ -3,7 +3,9 @@ from pathlib import Path
 import pandas as pd
 from datasets import load_dataset
 
-def load_custom_dataset(data_args, cache_dir="~/datasets"):
+def load_custom_dataset(data_args, cache_dir=None):
+    cache_dir = "~/datasets" if cache_dir is None else cache_dir
+
     # data directory
     base_dir = Path(os.path.dirname(os.path.realpath(__file__)))
     parent_dir = Path(os.path.dirname(base_dir))
@@ -31,8 +33,9 @@ def load_custom_dataset(data_args, cache_dir="~/datasets"):
         test_data.rename(columns=renamed_columns, inplace=True)
 
         # save formatted files
+        os.makedirs(cache_dir, exist_ok=True)
         train_data.to_csv(new_trainfile, sep=',', encoding='utf-8')
-        test_data.to_csv(new_testfile, sep=',', encding='utf-8')
+        test_data.to_csv(new_testfile, sep=',', encoding='utf-8')
 
         # create dataset
         data_files = {'train': new_trainfile, 'validation': new_testfile, 'test': new_testfile}
