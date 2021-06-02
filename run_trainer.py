@@ -259,13 +259,6 @@ def main():
         use_auth_token=True if model_args.use_auth_token else None,
     )
 
-    # padding strategy
-    if data_args.pad_to_max_length:
-        padding = "max_length"
-    else:
-        # We will pad later, dynamically at batch creation, to the max sequence length in each batch
-        padding = False
-
     label_to_id = {v: i for i, v in enumerate(label_list)}
 
     if data_args.max_seq_length > tokenizer.model_max_length:
@@ -277,8 +270,14 @@ def main():
 
     def preprocess_function(examples):
         # Tokenize the texts
-        args = (examples["text"])
-        result = tokenizer(*args, padding=padding, max_length=max_seq_length, truncation=True)
+        args = (
+            (examples['text'], )
+        )
+        result = tokenizer(
+            *args,
+            padding="max_length" if data_args.pad_to_max_length else False, # False=pad later, dynamically at batch creation, to the max sequence length in each batch
+            max_length=max_seq_length, 
+            truncation=True)
 
         # Map labels to IDs
         if label_to_id is not None and "label" in examples:
