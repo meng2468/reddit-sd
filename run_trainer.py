@@ -44,6 +44,7 @@ from tools import dataloader
 # check_min_version("4.7.0.dev0")
 
 available_models = [ "bert-base-uncased", "roberta-base", "distilbert-base-uncased", "albert-base-v2", "xlnet-base-cased" ]
+available_datasets = [ "SemEval2016Task6", "ARC", "FNC-1", "PERSPECTRUM" ]
 logger = logging.getLogger(__name__)
 
 @dataclass
