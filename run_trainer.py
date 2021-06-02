@@ -348,17 +348,17 @@ def main():
         
         # get the metric function
         metric_names = "accuracy f1 recall precision".split()
-        metrics = {m: load_metric(m) for m in metric_names}
+        metric_list = {m: load_metric(m) for m in metric_names}
 
         def compute_metrics(p: EvalPrediction):
             preds = p.predictions[0] if isinstance(p.predictions, tuple) else p.predictions
             preds = np.argmax(preds, axis=1)
             results = {}
-            for k, metric in metrics.items():
+            for k, metric in metric_list.items():
                 if k == "accuracy":
                     results[k] = list(metric.compute(predictions=preds, references=p.label_ids).values())[0]
                 else:
-                    results[k] = list(metric.compute(predictions=preds, references=p.label_ids, average='micro').values())[0]
+                    results[k] = list(metric.compute(predictions=preds, references=p.label_ids, average='macro').values())[0]
             return results
 
         # data collator will default to DataCollatorWithPadding, so we change it if we already did the padding.
