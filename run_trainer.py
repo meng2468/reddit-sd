@@ -212,6 +212,9 @@ def main():
     # Set seed before initializing model.
     set_seed(training_args.seed)
 
+    # Get initial output_dir
+    initial_output_dir = training_args.output_dir
+
     # ===== Get the datasets =====
     logger.info('{:=^50}'.format(" Load dataset "))
     if data_args.dataset_name is not None:
@@ -264,11 +267,11 @@ def main():
     # ===== Preprocessing the datasets =====
     logger.info('{:=^50}'.format(" Preprocess "))
     config = AutoConfig.from_pretrained(
-            model_args.config_name if model_args.config_name else model_args.model_name_or_path,
-            num_labels=num_labels,
-            cache_dir=model_args.cache_dir,
-            revision=model_args.model_revision,
-            use_auth_token=True if model_args.use_auth_token else None,
+        model_args.config_name if model_args.config_name else model_args.model_name_or_path,
+        num_labels=num_labels,
+        cache_dir=model_args.cache_dir,
+        revision=model_args.model_revision,
+        use_auth_token=True if model_args.use_auth_token else None,
     )
     tokenizer = AutoTokenizer.from_pretrained(
         model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
@@ -317,6 +320,9 @@ def main():
         formatted_target = target.strip().lower().replace('\s', '-')
         logger.info('{:*^50}'.format(' ' + target + ' '))
         logger.info('('+ formatted_target +')')
+
+        # change output_dir
+        training_args.output_dir = f"{initial_output_dir}/{formatted_target}"
 
         # Filter & Split datasets
         targeted_dataset = datasets.filter(lambda example: example['target'] == target)
