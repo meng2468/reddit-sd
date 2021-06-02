@@ -43,8 +43,7 @@ from tools import dataloader
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 # check_min_version("4.7.0.dev0")
 
-available_models = [ "bert-base-uncased" ]
-available_datasets = [ "SemEval2016Task6" ]
+available_models = [ "bert-base-uncased", "roberta-base", "distilbert-base-uncased", "albert-base-v2", "xlnet-base-cased" ]
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -136,7 +135,7 @@ class ModelArguments:
     """
 
     model_name_or_path: str = field(
-        metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
+        metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models among: " + ' | '.join(available_models)}
     )
     config_name: Optional[str] = field(
         default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
