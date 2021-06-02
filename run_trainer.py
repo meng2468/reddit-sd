@@ -97,6 +97,13 @@ class DataTrainingArguments:
             "value if set."
         },
     )
+    max_targets: Optional[int] = field(
+        default=10,
+        metadata={
+            "help": "Since some datasets have a lot of unique targets, it might be useful to truncate the number of "
+            "targets to train on (i.e. the number of models to train)."
+        }
+    )
     train_file: Optional[str] = field(
         default=None, metadata={"help": "A csv or a json file containing the training data."}
     )
@@ -298,7 +305,12 @@ def main():
 
     datasets = datasets.map(preprocess_function, batched=True, load_from_cache_file=not data_args.overwrite_cache)
 
-    logger.info(f"Found {len(target_list)} targets.")
+    if data_args.max_targets is not None:
+        logger.info(f"Found {len(target_list)} targets. Selecting {data_args.max_targets} of them.")
+        target_list = random.choices(target_list, k=data_args.max_targets)
+    else:
+        logger.info(f"Found {len(target_list)} targets. Selecting all of them.")
+
 
     # ===== BIG ASS LOOP THROUGH ALL TARGETS =====
     for target in target_list:
