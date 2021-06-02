@@ -26,7 +26,7 @@ export MODEL=bert-base-uncased
 export DATASET=SemEval2016Task6
 
 python run_trainer.py \
-    --model_name_or_path $MODEL \ 
+    --model_name_or_path $MODEL \
     --dataset_name $DATASET \
     --output_dir results/$DATASET/$MODEL \
     --cache_dir cache/$DATASET/$MODEL \

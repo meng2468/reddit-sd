@@ -1,6 +1,7 @@
 PARENTDIR=$(dirname "$0")
 BASEDIR=$(dirname "$PARENTDIR")
 DATADIR="${BASEDIR}/data"
+mkdir $DATADIR
 echo "************************************************"
 echo "Downloading datasets into $DATADIR"
 
