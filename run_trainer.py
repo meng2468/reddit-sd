@@ -7,6 +7,7 @@ Finetuning the library models for stance detection
     https://github.com/huggingface/transformers/blob/master/examples/pytorch/text-classification/run_glue.py
 """
 
+import logging
 import os
 import random
 import sys
@@ -44,7 +45,7 @@ from tools import dataloader
 
 available_models = [ "bert-base-uncased" ]
 available_datasets = [ "SemEval2016Task6" ]
-
+logger = logging.getLogger(__name__)
 
 @dataclass
 class DataTrainingArguments:
@@ -159,7 +160,7 @@ class ModelArguments:
 
 def main():
     # ===== Get the datasets =====
-    print('{:=^50}'.format(" Initialise "))
+    logger.info('{:=^50}'.format(" Initialise "))
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
@@ -178,23 +179,34 @@ def main():
                 "Use --overwrite_output_dir to overcome."
             )
         elif last_checkpoint is not None and training_args.resume_from_checkpoint is None:
-            print(
+            logger.info(
                 f"Checkpoint detected, resuming training at {last_checkpoint}. To avoid this behavior, change "
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
+    # Setup logging
+    logging.basicConfig(
+        format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
+        datefmt="%m/%d/%Y %H:%M:%S",
+        handlers=[logging.StreamHandler(sys.stdout)],
+    )
+    logger.setLevel(logging.INFO)
 
     # Log on each process the small summary:
-    print(
+    logger.warning(
         f"Process rank: {training_args.local_rank}, device: {training_args.device}, n_gpu: {training_args.n_gpu}"
         + f"distributed training: {bool(training_args.local_rank != -1)}, 16-bits training: {training_args.fp16}"
     )
-    print(f"Training/evaluation parameters {training_args}")
+    # Set the verbosity to info of the Transformers logger (on main process only):
+    transformers.utils.logging.set_verbosity_info()
+    transformers.utils.logging.enable_default_handler()
+    transformers.utils.logging.enable_explicit_format()
+    logger.info(f"Training/evaluation parameters {training_args}")
 
     # Set seed before initializing model.
     set_seed(training_args.seed)
 
     # ===== Get the datasets =====
-    print('{:=^50}'.format(" Load dataset "))
+    logger.info('{:=^50}'.format(" Load dataset "))
     if data_args.dataset_name is not None:
         if data_args.dataset_name in list_datasets():
             # Downloading and loading a dataset from the hub.
@@ -220,7 +232,7 @@ def main():
                 raise ValueError("Need a test file for `do_predict`.")
 
         for key in data_files.keys():
-            print(f"load a local file for {key}: {data_files[key]}")
+            logger.info(f"load a local file for {key}: {data_files[key]}")
 
         if data_args.train_file.endswith(".csv"):
             # Loading a dataset from local csv files
@@ -243,7 +255,7 @@ def main():
     num_labels = len(label_list)
 
     # ===== Preprocessing the datasets =====
-    print('{:=^50}'.format(" Preprocess "))
+    logger.info('{:=^50}'.format(" Preprocess "))
     config = AutoConfig.from_pretrained(
             model_args.config_name if model_args.config_name else model_args.model_name_or_path,
             num_labels=num_labels,
@@ -262,7 +274,7 @@ def main():
     label_to_id = {v: i for i, v in enumerate(label_list)}
 
     if data_args.max_seq_length > tokenizer.model_max_length:
-        print(
+        logger.warning(
             f"The max_seq_length passed ({data_args.max_seq_length}) is larger than the maximum length for the"
             f"model ({tokenizer.model_max_length}). Using max_seq_length={tokenizer.model_max_length}."
         )
@@ -286,13 +298,13 @@ def main():
 
     datasets = datasets.map(preprocess_function, batched=True, load_from_cache_file=not data_args.overwrite_cache)
 
-    print(f"Found {len(target_list)} targets.")
+    logger.info(f"Found {len(target_list)} targets.")
 
     # ===== BIG ASS LOOP THROUGH ALL TARGETS =====
     for target in target_list:
         formatted_target = target.strip().lower().replace('\s', '-')
-        print('{:*^50}'.format(' ' + target + ' '))
-        print('('+ formatted_target +')')
+        logger.info('{:*^50}'.format(' ' + target + ' '))
+        logger.info('('+ formatted_target +')')
 
         # Filter & Split datasets
         targeted_dataset = datasets.filter(lambda example: example['target'] == target)
@@ -317,10 +329,10 @@ def main():
         # Log a few random samples from the training set:
         if training_args.do_train:
             for index in random.sample(range(len(train_dataset)), 3):
-                print(f"Sample {index} of the training set: {train_dataset[index]}.")
+                logger.info(f"Sample {index} of the training set: {train_dataset[index]}.")
 
         # ===== Load pretrained model =====
-        print('{:=^50}'.format(" Load pretrained model "))
+        logger.info('{:=^50}'.format(" Load pretrained model "))
         model = AutoModelForSequenceClassification.from_pretrained(
             model_args.model_name_or_path,
             from_tf=bool(".ckpt" in model_args.model_name_or_path),
@@ -332,7 +344,7 @@ def main():
         # model = SimpleStDClassifier(base_model, num_labels, base_model_output_size=config.hidden_size)
 
         # ===== Initialize Trainer =====
-        print('{:=^50}'.format(" Initialise Trainer "))
+        logger.info('{:=^50}'.format(" Initialise Trainer "))
         
         # get the metric function
         metric_names = "accuracy f1 recall precision".split()
@@ -369,7 +381,7 @@ def main():
 
         # ===== Training =====
         if training_args.do_train:
-            print('{:=^50}'.format(" Train "))
+            logger.info('{:=^50}'.format(" Train "))
 
             checkpoint = None
             if training_args.resume_from_checkpoint is not None:
@@ -391,7 +403,7 @@ def main():
 
         # ===== Evaluation =====
         if training_args.do_eval:
-            print('{:=^50}'.format(" Evaluate "))
+            logger.info('{:=^50}'.format(" Evaluate "))
         
             metrics = trainer.evaluate(eval_dataset=eval_dataset)
             max_eval_samples = (
@@ -404,7 +416,7 @@ def main():
 
         # ===== Prediction =====
         if training_args.do_predict:
-            print('{:=^50}'.format(" Predict "))
+            logger.info('{:=^50}'.format(" Predict "))
             
             # Removing the `label` columns because it contains -1 and Trainer won't like that.
             predict_dataset.remove_columns_('label')
@@ -414,7 +426,7 @@ def main():
             output_predict_file = os.path.join(training_args.output_dir, f"predict_results_{formatted_target}.txt")
             if trainer.is_world_process_zero():
                 with open(output_predict_file, "w") as writer:
-                    print('{:*^50}'.format(" Predict results '" + target + "' "))
+                    logger.info('{:*^50}'.format(" Predict results '" + target + "' "))
                     writer.write("index\tprediction\n")
                     for index, item in enumerate(predictions):
                         item = label_list[item]
