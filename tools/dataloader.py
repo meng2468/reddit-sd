@@ -5,6 +5,7 @@ from datasets import load_dataset
 
 def load_custom_dataset(data_args, cache_dir=None):
     cache_dir = "~/datasets" if cache_dir is None else cache_dir
+    os.makedirs(cache_dir, exist_ok=True)
 
     # data directory
     base_dir = Path(os.path.dirname(os.path.realpath(__file__)))
