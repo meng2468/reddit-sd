@@ -20,7 +20,7 @@ from datasets import load_dataset, load_metric, list_datasets
 import transformers
 from transformers import (
     AutoConfig,
-    AutoModel,
+    AutoModelForSequenceClassification,
     AutoTokenizer,
     DataCollatorWithPadding,
     EvalPrediction,
@@ -36,7 +36,7 @@ from transformers.utils import check_min_version
 
 # custom imports
 from tools import dataloader
-from models.models import SimpleStDClassifier
+# from models.models import SimpleStDClassifier
 
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
@@ -69,7 +69,7 @@ class DataTrainingArguments:
         default=False, metadata={"help": "Overwrite the cached preprocessed datasets or not."}
     )
     pad_to_max_length: bool = field(
-        default=True,
+        default=False,
         metadata={
             "help": "Whether to pad all samples to `max_seq_length`. "
             "If False, will pad the samples dynamically when batching to the maximum length in the batch."
@@ -321,7 +321,7 @@ def main():
 
         # ===== Load pretrained model =====
         print('{:=^50}'.format(" Load pretrained model "))
-        base_model = AutoModel.from_pretrained(
+        model = AutoModelForSequenceClassification.from_pretrained(
             model_args.model_name_or_path,
             from_tf=bool(".ckpt" in model_args.model_name_or_path),
             config=config,
@@ -329,7 +329,7 @@ def main():
             revision=model_args.model_revision,
             use_auth_token=True if model_args.use_auth_token else None,
         )
-        model = SimpleStDClassifier(base_model, num_labels, base_model_output_size=config.hidden_size)
+        # model = SimpleStDClassifier(base_model, num_labels, base_model_output_size=config.hidden_size)
 
         # ===== Initialize Trainer =====
         print('{:=^50}'.format(" Initialise Trainer "))
@@ -402,7 +402,7 @@ def main():
             trainer.log_metrics('eval', metrics)
             trainer.save_metrics('eval', metrics)
 
-        # Prediction
+        # ===== Prediction =====
         if training_args.do_predict:
             print('{:=^50}'.format(" Predict "))
             
