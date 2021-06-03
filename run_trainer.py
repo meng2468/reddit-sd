@@ -320,9 +320,9 @@ def main():
 
 
     # ===== BIG ASS LOOP THROUGH ALL TARGETS =====
-    for target in target_list:
+    for i, target in enumerate(target_list):
         formatted_target = target.strip().lower().replace('\s', '-')
-        logger.info('{:*^50}'.format(' ' + target + ' '))
+        logger.info('{:*^50}'.format(' ' + target + '('+ i + '/' + len(target_list) +')' + ' '))
         logger.info('('+ formatted_target +')')
 
         # change output_dir
