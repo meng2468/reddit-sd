@@ -48,7 +48,7 @@ def authors_selection(file_path_1, file_path_2, encoding='utf-8'):
                     break
 
             '''
-            Un commend to add authors that are not in other file
+            add authors that do not exist in both files
             '''
             if author_flag == False:
                 print('Author ', author1, ' not found, adding to selection file!!!!')
