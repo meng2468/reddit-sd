@@ -61,8 +61,8 @@ def load_custom_dataset(data_args, cache_dir=None):
         # save newly created data
         new_trainfile = os.path.join(cache_dir, "train.csv")
         new_testfile = os.path.join(cache_dir, "test.csv")
-        train_data.to_csv(os.path.join(new_trainfile, "train.csv"), sep=',', encoding='utf-8')
-        test_data.to_csv(os.path.join(new_testfile, "test.csv"), sep=',', encoding='utf-8')
+        train_data.to_csv(new_trainfile, sep=',', encoding='utf-8')
+        test_data.to_csv(new_testfile, sep=',', encoding='utf-8')
 
         # create dataset
         data_files = {'train': new_trainfile, 'validation': new_testfile, 'test': new_testfile}
@@ -88,8 +88,8 @@ def load_custom_dataset(data_args, cache_dir=None):
         # save newly created data
         new_trainfile = os.path.join(cache_dir, "train.csv")
         new_testfile = os.path.join(cache_dir, "test.csv")
-        train_data.to_csv(os.path.join(new_trainfile, "train.csv"), sep=',', encoding='utf-8')
-        test_data.to_csv(os.path.join(new_testfile, "test.csv"), sep=',', encoding='utf-8')
+        train_data.to_csv(new_trainfile, sep=',', encoding='utf-8')
+        test_data.to_csv(new_testfile, sep=',', encoding='utf-8')
 
         # create dataset
         data_files = {'train': new_trainfile, 'validation': new_testfile, 'test': new_testfile}
@@ -127,9 +127,9 @@ def load_custom_dataset(data_args, cache_dir=None):
         train_data = all_data.loc[all_data.split == 'train', ["text", "target", "label"]]
         val_data = all_data.loc[all_data.split == 'dev', ["text", "target", "label"]]
         test_data = all_data.loc[all_data.split == 'test', ["text", "target", "label"]]
-        train_data.to_csv(new_trainfile)
-        val_data.to_csv(new_valfile)
-        test_data.to_csv(new_testfile)
+        train_data.to_csv(new_trainfile, sep=',', encoding='utf-8')
+        val_data.to_csv(new_valfile, sep=',', encoding='utf-8')
+        test_data.to_csv(new_testfile, sep=',', encoding='utf-8')
 
         # create dataset
         data_files = {'train': new_trainfile, 'validation': new_valfile, 'test': new_testfile}
