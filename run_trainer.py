@@ -163,6 +163,10 @@ class ModelArguments:
             "with private models)."
         },
     )
+    discard_model_save: bool = field(
+        default=False,
+        metadata={'help': "Will discard saving the model to optimize disk space usage."}
+    )
 
 
 def main():
@@ -413,7 +417,8 @@ def main():
             )
             metrics['train_samples'] = min(max_train_samples, len(train_dataset))
 
-            trainer.save_model()  # Saves the tokenizer too for easy upload
+            if not model_args.discard_model_save:
+                trainer.save_model()  # Saves the tokenizer too for easy upload
 
             trainer.log_metrics('train', metrics)
             trainer.save_metrics('train', metrics)
