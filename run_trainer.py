@@ -98,7 +98,7 @@ class DataTrainingArguments:
         },
     )
     max_targets: Optional[int] = field(
-        default=10,
+        default=None,
         metadata={
             "help": "Since some datasets have a lot of unique targets, it might be useful to truncate the number of "
             "targets to train on (i.e. the number of models to train)."
