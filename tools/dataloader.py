@@ -121,9 +121,9 @@ def load_custom_dataset(data_args, cache_dir=None):
         all_data = all_data.loc[:, useful_columns].rename(columns=renamed_columns)
 
         # save newly created data
-        new_trainfile = os.path.join(cache_dir, "train.csv", sep=',', encoding='utf-8')
-        new_valfile = os.path.join(cache_dir, "validation.csv", sep=',', encoding='utf-8')
-        new_testfile = os.path.join(cache_dir, "test.csv", sep=',', encoding='utf-8')
+        new_trainfile = os.path.join(cache_dir, "train.csv")
+        new_valfile = os.path.join(cache_dir, "validation.csv")
+        new_testfile = os.path.join(cache_dir, "test.csv")
         train_data = all_data.loc[all_data.split == 'train', ["text", "target", "label"]]
         val_data = all_data.loc[all_data.split == 'dev', ["text", "target", "label"]]
         test_data = all_data.loc[all_data.split == 'test', ["text", "target", "label"]]
