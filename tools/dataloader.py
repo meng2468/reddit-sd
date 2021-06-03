@@ -2,7 +2,7 @@ import os
 import json
 from pathlib import Path
 import pandas as pd
-import numpy as np
+from sklearn.model_selection import train_test_split
 from datasets import load_dataset
 
 def load_custom_dataset(data_args, cache_dir=None):
@@ -146,13 +146,35 @@ def load_custom_dataset(data_args, cache_dir=None):
         # format data using pandas
         useful_columns = ["text", "label"]
         all_data = all_data.loc[:, useful_columns]
+        all_data['target'] = "Ethereum"
+        
+        # splits
+        train_data, test_data = train_test_split(all_data, train_size=.8, shuffle=True, stratify=all_data['label'])
+
+        # save newly created data
+        new_trainfile = os.path.join(cache_dir, "train.csv")
+        new_testfile = os.path.join(cache_dir, "test.csv")
+        train_data.to_csv(new_trainfile, sep=',', encoding='utf-8')
+        test_data.to_csv(new_testfile, sep=',', encoding='utf-8')
+
+        # create dataset
+        data_files = {'train': new_trainfile, 'validation': new_testfile, 'test': new_testfile}
+        datasets = load_dataset("csv", data_files=data_files, cache_dir=cache_dir)
+        return datasets
+    
+    elif data_args.dataset_name in ["SEthC"]:
+        filename = f"{data_args.dataset_name}.csv"
+
+        # load data
+        all_data = pd.read_csv(os.path.join(data_dir, filename), quotechar='`')
+
+        # format data using pandas
+        useful_columns = ["text", "label"]
+        all_data = all_data.loc[:, useful_columns].dropna(axis=0, how='any')
         all_data["target"] = "Ethereum"
         
         # splits
-        ratio = .8
-        is_train = np.random.rand(all_data.shape[0]) < ratio
-        train_data = all_data.loc[is_train]
-        test_data = all_data.loc[~is_train]
+        train_data, test_data = train_test_split(all_data, train_size=.8, shuffle=True, stratify=all_data['label'])
 
         # save newly created data
         new_trainfile = os.path.join(cache_dir, "train.csv")
