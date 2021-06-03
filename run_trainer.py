@@ -44,7 +44,7 @@ from tools import dataloader
 # check_min_version("4.7.0.dev0")
 
 available_models = [ "bert-base-uncased", "roberta-base", "distilbert-base-uncased", "albert-base-v2", "xlnet-base-cased" ]
-available_datasets = [ "SemEval2016Task6", "ARC", "FNC-1", "PERSPECTRUM" ]
+available_datasets = [ "SemEval2016Task6", "ARC", "FNC-1", "PERSPECTRUM", "SEthB" ]
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -327,8 +327,8 @@ def main():
 
     # ===== BIG ASS LOOP THROUGH ALL TARGETS =====
     for i, target in enumerate(target_list):
-        formatted_target = target.strip().lower().replace('\s', '-')
-        logger.info('{:*^50}'.format(f" {target} ({i}/{len(target_list)}) "))
+        formatted_target = target.strip().lower().replace(' ', '-')
+        logger.info('{:*^50}'.format(f" {target:.30} ({i}/{len(target_list)}) "))
         logger.info('('+ formatted_target +')')
 
         # change output_dir
@@ -348,6 +348,8 @@ def main():
         if training_args.do_eval:
             assert 'validation' in targeted_dataset, "--do_eval requires a validation dataset"
             eval_dataset = targeted_dataset['validation']
+            if not len(eval_dataset) > 0:
+                eval_dataset = train_dataset # eval_dataset is train_dataset if there are no samples in test
             if data_args.max_eval_samples is not None:
                 eval_dataset = eval_dataset.select(range(data_args.max_eval_samples))
 
