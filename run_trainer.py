@@ -105,7 +105,7 @@ class DataTrainingArguments:
         }
     )
     min_train_population: Optional[int] = field(
-        default=100,
+        default=50,
         metadata={
             "help": "Minimum population of a dataset to run a training on."
         }
