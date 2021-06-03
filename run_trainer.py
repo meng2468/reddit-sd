@@ -104,6 +104,12 @@ class DataTrainingArguments:
             "targets to train on (i.e. the number of models to train)."
         }
     )
+    min_train_population: Optional[int] = field(
+        default=100,
+        metadata={
+            "help": "Minimum population of a dataset to run a training on."
+        }
+    )
     train_file: Optional[str] = field(
         default=None, metadata={"help": "A csv or a json file containing the training data."}
     )
@@ -322,7 +328,7 @@ def main():
     # ===== BIG ASS LOOP THROUGH ALL TARGETS =====
     for i, target in enumerate(target_list):
         formatted_target = target.strip().lower().replace('\s', '-')
-        logger.info('{:*^50}'.format(' ' + target + '('+ i + '/' + len(target_list) +')' + ' '))
+        logger.info('{:*^50}'.format(f" {target} ({i}/{len(target_list)}) "))
         logger.info('('+ formatted_target +')')
 
         # change output_dir
@@ -333,6 +339,9 @@ def main():
         if training_args.do_train:
             assert 'train' in targeted_dataset, "--do_train requires a train dataset"
             train_dataset = targeted_dataset['train']
+            if len(train_dataset) < data_args.min_train_population:
+                logger.info(f"Dataset with target {target} has too few samples ({len(train_dataset)}), passing...")
+                continue # continue if dataset has too few samples
             if data_args.max_train_samples is not None:
                 train_dataset = train_dataset.select(range(data_args.max_train_samples))
 
@@ -346,7 +355,7 @@ def main():
             assert 'test' in datasets, "--do_predict requires a test dataset"
             predict_dataset = targeted_dataset['test']
             if data_args.max_predict_samples is not None:
-                predict_dataset = predict_dataset.select(range(data_args.max_predict_samples))
+                predict_dataset = predict_dataset.select(range(data_args.max_predict_samples)) 
 
         # Log a few random samples from the training set:
         if training_args.do_train:
