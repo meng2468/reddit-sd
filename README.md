@@ -4,6 +4,7 @@
 To download relevant stance detection datasets runt he dataset.sh file in tools. 
 Requirements:
 - unzip (terminal)
+
 ## Requirements
 For the parser and text processing you will need Python 3.6+ and the following:
 - spacy==3.0.6+
@@ -15,10 +16,18 @@ Compute benchmark results on popular Stance Detection datasets using out-of-the-
 Currently, the code supports the following models and datasets:
 
 **Models**
-- bert-base-uncased
+- `bert-base-uncased`
+- `roberta-base`
+- `distilbert-base-uncased`
+- `albert-base-v2`
+- `xlnet-base-cased`
 
 **Datasets**
 - SemEval2016Task6
+- ARC
+- FNC-1
+- SEthB
+- SEthC
 
 Here is how to run the script on one of them.
 ```
@@ -48,7 +57,7 @@ Scores are formatted as *Accuracy / F1* and are computed as an average over all 
 |       XLNet       | .6887 / .5037 | **.8099** / **.4780** | .5742 / .4371 | .8038 / .5942 |
 |        SotA       |    - / .6979   |    - / .6583   | .7142 / .6251 |  .8071 / .6139 |
 
-### Usage
+### Complete Usage
 ```
 usage: run_trainer.py [-h] --model_name_or_path MODEL_NAME_OR_PATH
                       [--config_name CONFIG_NAME]
