@@ -34,6 +34,12 @@ def load_custom_dataset(data_args, cache_dir=None):
         train_data.rename(columns=renamed_columns, inplace=True)
         test_data.rename(columns=renamed_columns, inplace=True)
 
+        # remove under-populated targets
+        unique_targets = train_data['target'].unique()
+        is_enough_samples = train_data.groupby('target').count()['text'] > data_args.min_train_population
+        train_data = train_data.loc[train_data['target'].isin(unique_targets[is_enough_samples]), :]
+        test_data = test_data.loc[test_data['target'].isin(unique_targets[is_enough_samples]), :]
+
         # save formatted files
         new_trainfile = os.path.join(cache_dir, "train.csv")
         new_testfile = os.path.join(cache_dir, "test.csv")
@@ -58,6 +64,12 @@ def load_custom_dataset(data_args, cache_dir=None):
         renamed_columns = {'articleBody': "text", 'Stance': "label", 'Headline': "target"}
         train_data = train_data.loc[:, useful_columns].rename(columns=renamed_columns)
         test_data = test_data.loc[:, useful_columns].rename(columns=renamed_columns)
+
+        # remove under-populated targets
+        unique_targets = train_data['target'].unique()
+        is_enough_samples = train_data.groupby('target').count()['text'] > data_args.min_train_population
+        train_data = train_data.loc[train_data['target'].isin(unique_targets[is_enough_samples]), :]
+        test_data = test_data.loc[test_data['target'].isin(unique_targets[is_enough_samples]), :]
 
         # save newly created data
         new_trainfile = os.path.join(cache_dir, "train.csv")
@@ -85,6 +97,12 @@ def load_custom_dataset(data_args, cache_dir=None):
         renamed_columns = {'articleBody': "text", 'Stance': "label", 'Headline': "target"}
         train_data = train_data.loc[:, useful_columns].rename(columns=renamed_columns)
         test_data = test_data.loc[:, useful_columns].rename(columns=renamed_columns)
+
+        # remove under-populated targets
+        unique_targets = train_data['target'].unique()
+        is_enough_samples = train_data.groupby('target').count()['text'] > data_args.min_train_population
+        train_data = train_data.loc[train_data['target'].isin(unique_targets[is_enough_samples]), :]
+        test_data = test_data.loc[test_data['target'].isin(unique_targets[is_enough_samples]), :]
 
         # save newly created data
         new_trainfile = os.path.join(cache_dir, "train.csv")
@@ -121,6 +139,12 @@ def load_custom_dataset(data_args, cache_dir=None):
         renamed_columns = {'text_stance': "text", 'text_target': "target", 'perspectives.stance_label_3': "label"}
         all_data = all_data.loc[:, useful_columns].rename(columns=renamed_columns)
 
+        # remove under-populated targets
+        unique_targets = train_data['target'].unique()
+        is_enough_samples = train_data.groupby('target').count()['text'] > data_args.min_train_population
+        train_data = train_data.loc[train_data['target'].isin(unique_targets[is_enough_samples]), :]
+        test_data = test_data.loc[test_data['target'].isin(unique_targets[is_enough_samples]), :]
+
         # save newly created data
         new_trainfile = os.path.join(cache_dir, "train.csv")
         new_valfile = os.path.join(cache_dir, "validation.csv")
@@ -137,7 +161,7 @@ def load_custom_dataset(data_args, cache_dir=None):
         datasets = load_dataset("csv", data_files=data_files, cache_dir=cache_dir)
         return datasets
     
-    elif data_args.dataset_name in ["SEthB"]:
+    elif data_args.dataset_name == "SEthB":
         filename = f"{data_args.dataset_name}.csv"
 
         # load data
@@ -162,7 +186,7 @@ def load_custom_dataset(data_args, cache_dir=None):
         datasets = load_dataset("csv", data_files=data_files, cache_dir=cache_dir)
         return datasets
     
-    elif data_args.dataset_name in ["SEthC"]:
+    elif data_args.dataset_name == "SEthC":
         filename = f"{data_args.dataset_name}.csv"
 
         # load data
