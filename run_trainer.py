@@ -373,14 +373,16 @@ def main():
                 logger.info(f"Sample {index} of the training set: {train_dataset[index]}.")
 
         # ===== Load pretrained model =====
-        logger.info('{:=^50}'.format(" Load pretrained model "))
-        model = AutoModelForSequenceClassification.from_pretrained(
-            model_args.model_name_or_path,
-            from_tf=bool(".ckpt" in model_args.model_name_or_path),
-            config=config,
-            revision=model_args.model_revision,
-            use_auth_token=True if model_args.use_auth_token else None,
-        )
+        def model_init():
+            logger.info('{:=^50}'.format(" Load pretrained model "))
+            model = AutoModelForSequenceClassification.from_pretrained(
+                model_args.model_name_or_path,
+                from_tf=bool(".ckpt" in model_args.model_name_or_path),
+                config=config,
+                revision=model_args.model_revision,
+                use_auth_token=True if model_args.use_auth_token else None,
+            )
+            return model
         # model = SimpleStDClassifier(base_model, num_labels, base_model_output_size=config.hidden_size)
 
         # ===== Initialize Trainer =====
@@ -410,7 +412,7 @@ def main():
             data_collator = None
 
         trainer = Trainer(
-            model=model,
+            model_init=model_init,
             args=training_args,
             train_dataset=train_dataset if training_args.do_train else None,
             eval_dataset=eval_dataset if training_args.do_eval else None,
