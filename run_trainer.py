@@ -47,6 +47,21 @@ available_models = [ "bert-base-uncased", "roberta-base", "distilbert-base-uncas
 available_datasets = [ "SemEval2016Task6", "ARC", "FNC-1", "PERSPECTRUM", "SEthB", "SEthC" ]
 logger = logging.getLogger(__name__)
 
+@dataclass 
+class CustomTrainingArguments(TrainingArguments):
+    """
+    Arguments pertaining to what kind of training we are going to perform.
+    This custom class inherits from 🤗 Transformers TrainingArguments class.
+    """
+    max_models: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": "Since some datasets have a lot of unique targets, it might be useful to truncate the number of "
+            "targets to train on (i.e. the number of models to train)."
+        }
+    )
+    
+
 @dataclass
 class DataTrainingArguments:
     """
@@ -96,13 +111,6 @@ class DataTrainingArguments:
             "help": "For debugging purposes or quicker training, truncate the number of prediction examples to this "
             "value if set."
         },
-    )
-    max_targets: Optional[int] = field(
-        default=None,
-        metadata={
-            "help": "Since some datasets have a lot of unique targets, it might be useful to truncate the number of "
-            "targets to train on (i.e. the number of models to train)."
-        }
     )
     min_train_population: Optional[int] = field(
         default=50,
@@ -178,7 +186,7 @@ class ModelArguments:
 def main():
     # ===== Get the datasets =====
     logger.info('{:=^50}'.format(" Initialise "))
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
+    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, CustomTrainingArguments))
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
