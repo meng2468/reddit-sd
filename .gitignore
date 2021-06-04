@@ -143,3 +143,5 @@ results/
 notebooks/
 git.json
 *.zip
+notebooks/
+report/
