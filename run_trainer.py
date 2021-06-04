@@ -318,15 +318,15 @@ def main():
 
     datasets = datasets.map(preprocess_function, batched=True, load_from_cache_file=not data_args.overwrite_cache)
 
-    if data_args.max_targets is not None:
-        logger.info(f"Found {len(target_list)} targets. Selecting {data_args.max_targets} of them.")
-        target_list = random.choices(target_list, k=data_args.max_targets)
+    if training_args.max_models is not None:
+        logger.info(f"Found {len(target_list)} targets with at least {data_args.min_train_population} samples. Selecting {training_args.max_models} of them.")
+        target_list = random.choices(target_list, k=training_args.max_models)
     else:
-        logger.info(f"Found {len(target_list)} targets. Selecting all of them.")
+        logger.info(f"Found {len(target_list)} targets with at least {data_args.min_train_population} samples. Selecting all of them.")
 
 
     # ===== BIG ASS LOOP THROUGH ALL TARGETS =====
-    for i, target in enumerate(target_list):
+    for i, target in enumerate(target_list, 1):
         formatted_target = target.strip().lower().replace(' ', '-')
         logger.info('{:*^50}'.format(f" {target:.30} ({i}/{len(target_list)}) "))
         logger.info('('+ formatted_target +')')
@@ -339,9 +339,6 @@ def main():
         if training_args.do_train:
             assert 'train' in targeted_dataset, "--do_train requires a train dataset"
             train_dataset = targeted_dataset['train']
-            if len(train_dataset) < data_args.min_train_population:
-                logger.info(f"Dataset with target {target} has too few samples ({len(train_dataset)}), passing...")
-                continue # continue if dataset has too few samples
             if data_args.max_train_samples is not None:
                 train_dataset = train_dataset.select(range(data_args.max_train_samples))
 
@@ -370,7 +367,6 @@ def main():
             model_args.model_name_or_path,
             from_tf=bool(".ckpt" in model_args.model_name_or_path),
             config=config,
-            cache_dir=Path(model_args.cache_dir)/Path(formatted_target),
             revision=model_args.model_revision,
             use_auth_token=True if model_args.use_auth_token else None,
         )
