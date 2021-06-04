@@ -140,3 +140,8 @@ cython_debug/
 # Custom
 .vscode/
 results/
+notebooks/
+git.json
+*.zip
+notebooks/
+report/
