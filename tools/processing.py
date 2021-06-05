@@ -1,7 +1,11 @@
+import os
 import pandas as pd
 import numpy as np
 import spacy
 
+
+
+# ============= Reddit data processing =============
 # Chooses relevant fields from scraped comments
 def get_data(file_path):
     print('(1/4) Loading data from', file_path)

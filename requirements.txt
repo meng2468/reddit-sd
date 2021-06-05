@@ -1,0 +1,5 @@
+pandas>=1.1.5
+spacy>=2.2.4
+torch>=1.8.1
+transformers>=4.6.1
+datasets>=1.7.0
