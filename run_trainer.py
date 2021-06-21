@@ -36,7 +36,7 @@ from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version
 
 # custom imports
-from tools import dataloader
+from .tools import dataloader
 # from models.models import SimpleStDClassifier
 
 
