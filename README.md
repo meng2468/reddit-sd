@@ -20,10 +20,10 @@ To get the project running you will need Python 3.6+ and do the following
 - Install the language model used in spaCy: `python -m spacy download en_core_web_sm`
 
 ### Data Retrieval and Processing
-To perform both data retrieval and filtering as described in the report, sample code is provided in example.py.
-Data retrieval from reddit is done using the Pushshift API in tools/parser.py.
-Our filtering and preliminary pre-processing is implemented in tools/processing.py.
-A simple annotation script is provided in tools/annotate.py, and can easily be edited to annotate newly-retrieved datasets.
+To perform both data retrieval and filtering as described in the report, sample code is provided in `example.py`.
+Data retrieval from reddit is done using the Pushshift API in `tools/parser.py`.
+Our filtering and preliminary pre-processing is implemented in `tools/processing.py`.
+A simple annotation script is provided in `tools/annotate.py`, and can easily be edited to annotate newly-retrieved datasets.
 
 ### Transfer Learning with Pre-Trained Language Models
 Compute benchmark results on popular Stance Detection datasets using out-of-the-box classical NLP model using `run_trainer.py`.
