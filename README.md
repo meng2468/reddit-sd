@@ -1,7 +1,13 @@
 # Stance Detection for Reddit
-Research project done for the NLP SS21 module  at Tsinghua University.
+This project started as a course project for the 2021 Natural Language Processing course at Tsinghua University
+The final project report is available in Final_Report.pdf and a project poster is available at Project_Poster.pdf
 
-## Description
+## Introduction
+Stance Detection is an important area of research in Natural Language Processing with growing interest from the community. By leveraging large amounts of publicly available data from social media, it can aid in tasks ranging from fake news detection to product decision making and review. Although similar to aspect-based Sentiment Analysis, both the amount of annotated datasets and the applica- tion of cutting-edge Machine Learning techniques are still lacking. This project contributes to Stance Detection by addressing these main two challenges over the case of Ethereum.
+
+First we create our own datasets SEthB and SEthC which, in contrast to the majority of datasets in Std (and more generally Sentiment Analysis) which are created off data from Twitter, utilizes comments taken from the popular discusison forum Reddit. Our motivation of doing so derives from Reddit being the most popular area of discussion for Cryptocurrencies and being able to provide guidelines and an initial methodology for creating a Stance Detection dataset for Reddit. Furthermore, our approach to dataset creation promotes a recently explored annotation technique based on clustering (Zotova et al., 2021) which possesses significant potential and requires further exploration in future work.
+
+Second, due to the recent performance of large language models on different domains in Natural Language Processing, the application of Transfer Learning has seen many initial successes in Sentiment Analysis. Therefore we decide to take a step forward in this direction and introduce a new comparative study of multiple PLMs of interest in the particular case StD. By transferring knowl- edge between models with different domains, we approach state-of-the-art results on popular StD datasets with only but minimal human intervention in data preprocessing, model fine-tuning and task description.
 
 ### Requirements
 To get the project running you will need Python 3.6+ and do the following
