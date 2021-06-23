@@ -9,6 +9,7 @@ First we create our own datasets SEthB and SEthC which, in contrast to the major
 
 Second, due to the recent performance of large language models on different domains in Natural Language Processing, the application of Transfer Learning has seen many initial successes in Sentiment Analysis. Therefore we decide to take a step forward in this direction and introduce a new comparative study of multiple PLMs of interest in the particular case StD. By transferring knowl- edge between models with different domains, we approach state-of-the-art results on popular StD datasets with only but minimal human intervention in data preprocessing, model fine-tuning and task description.
 
+## Project Details
 ### Requirements
 To get the project running you will need Python 3.6+ and do the following
 - Download popular stance detection datasets using: `sh tools/datasets.sh`
