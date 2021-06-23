@@ -1,6 +1,6 @@
 # Stance Detection for Reddit
 This project started as a course project for the 2021 Natural Language Processing course at Tsinghua University
-The final project report is available in Final_Report.pdf and a project poster is available at Project_Poster.pdf
+The final project report is available [here](Final_Report.pdf) and a project poster is available [here](Project_Poster.pdf)
 
 ## Introduction
 Stance Detection is an important area of research in Natural Language Processing with growing interest from the community. 
