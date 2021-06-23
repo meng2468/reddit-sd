@@ -3,17 +3,15 @@ Research project done for the NLP SS21 module  at Tsinghua University.
 
 ## Description
 
-
 ### Datasets
-To download relevant stance detection datasets runt he dataset.sh file in tools. 
+To download relevant benchmark stance detection datasets run the dataset.sh file in tools. 
 Requirements:
 - unzip (terminal)
 
 ### Requirements
-For the parser and text processing you will need Python 3.6+ and the following:
-- spacy==3.0.6+
-- pandas==1.2.4+
-- en_core_web_sm (install with python -m spacy download en_core_web_sm)
+To get the project running you will need Python 3.6+ and do the following
+- Install the relevant packages with: `pip install -r requirements.txt`
+- Install the language model used in spaCy: python -m spacy download en_core_web_sm
 
 ### Benchmarks
 Compute benchmark results on popular Stance Detection datasets using out-of-the-box classical NLP model using `run_trainer.py`.
